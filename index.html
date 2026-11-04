@@ -43,6 +43,11 @@
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
         }
 
+        .container-fluid-custom {
+            max-width: 98%;
+            margin: 0 auto;
+        }
+
         .form-control, .form-select {
             background-color: #f8fafc;
             border: 1px solid #94a3b8;
@@ -57,15 +62,6 @@
             border-color: var(--accent-blue);
             color: #0f172a;
             box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.2);
-        }
-
-        .form-control::placeholder {
-            color: #94a3b8;
-        }
-
-        .form-select option {
-            background-color: #ffffff;
-            color: #0f172a;
         }
 
         .problem-item-card {
@@ -93,7 +89,7 @@
         }
 
         .btn-primary-custom:hover {
-            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            background: linear-gradient(135deg, #0369a1 100%, #075985 100%);
             color: #ffffff;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(3, 105, 161, 0.3);
@@ -129,7 +125,9 @@
             background-color: #1e293b;
             color: #ffffff;
             font-weight: 600;
+            padding: 1rem 0.75rem;
             border-bottom: 2px solid #cbd5e1;
+            white-space: nowrap;
         }
 
         .table-custom td {
@@ -137,6 +135,23 @@
             color: #0f172a;
             border-color: #e2e8f0;
             vertical-align: middle;
+            padding: 1rem 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .table-img-thumb {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            border: 2px solid #cbd5e1;
+            transition: transform 0.2s;
+        }
+
+        .table-img-thumb:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-blue);
         }
     </style>
 </head>
@@ -144,7 +159,7 @@
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top mb-4">
-        <div class="container">
+        <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
                 <i class="fa-solid fa-industry text-primary"></i>
                 <span>LAPORAN PROBLEM PRODUKSI EXTRUDER</span>
@@ -156,7 +171,7 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container-fluid container-fluid-custom">
         <!-- TAB 1: FORM INPUT -->
         <div id="section-form" class="row justify-content-center">
             <div class="col-lg-10">
@@ -228,7 +243,7 @@
         <div id="section-history" class="row justify-content-center d-none">
             <div class="col-lg-12">
                 <div class="glass-card p-4 p-md-5 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
                         <div>
                             <h3 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Riwayat Laporan Tersimpan</h3>
                             <p class="text-muted small mb-0">Daftar laporan shift dan problem yang tercatat.</p>
@@ -236,6 +251,21 @@
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-success btn-sm fw-semibold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
                             <button class="btn btn-outline-danger btn-sm fw-semibold" onclick="clearHistory()"><i class="fa-solid fa-trash me-1"></i> Hapus Riwayat</button>
+                        </div>
+                    </div>
+
+                    <!-- FILTER PERIODE TANGGAL -->
+                    <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded border">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Dari Tanggal</label>
+                            <input type="date" id="filterStartDate" class="form-control" onchange="renderHistoryTable()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Sampai Tanggal</label>
+                            <input type="date" id="filterEndDate" class="form-control" onchange="renderHistoryTable()">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button class="btn btn-secondary w-100 fw-semibold" onclick="resetFilter()"><i class="fa-solid fa-rotate-left me-1"></i> Reset Filter</button>
                         </div>
                     </div>
 
@@ -247,9 +277,9 @@
                                     <th>Shift</th>
                                     <th>% Reject</th>
                                     <th>Mesin & Bagian</th>
-                                    <th>Deskripsi Problem</th>
+                                    <th style="min-width: 250px;">Deskripsi Problem</th>
                                     <th>Foto Problem</th>
-                                    <th>Tindakan Improvement</th>
+                                    <th style="min-width: 250px;">Tindakan Improvement</th>
                                     <th>Foto Improvement</th>
                                 </tr>
                             </thead>
@@ -268,11 +298,11 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="imageModalTitle">Pratinjau Foto</h5>
+                    <h5 class="modal-title" id="imageModalTitle">Pratinjau Foto Bukti</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center p-2 bg-light">
-                    <img id="modalImageSrc" src="" class="img-fluid rounded" style="max-height: 80vh;">
+                <div class="modal-body text-center p-3 bg-light">
+                    <img id="modalImageSrc" src="" class="img-fluid rounded shadow" style="max-height: 80vh;">
                 </div>
             </div>
         </div>
@@ -285,7 +315,10 @@
         // ==========================================
         // KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL
         // ==========================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0Y4ZOMWUf8xqdoF_WW6civ2jl9VH2yo1RFvifVbz77hzC_EO7CdTElRku5Ajrzjebjg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0Y4ZOMWuf8xqdoF_WW6civ2jl9VH2yo1RFvifVbz77hzC_E07CdTEIRku5Ajr/exec"; 
+
+        // PASSWORD KEAMANAN UNTUK MENGHAPUS RIWAYAT
+        const DELETE_PASSWORD = "hapus1234";
 
         document.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().split('T')[0];
@@ -479,8 +512,21 @@
             const tbody = document.getElementById('historyTableBody');
             let history = JSON.parse(localStorage.getItem('extruder_reports') || '[]');
 
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+
+            if (startDate || endDate) {
+                history = history.filter(item => {
+                    const itemDate = item.header.tanggal;
+                    if (startDate && endDate) return itemDate >= startDate && itemDate <= endDate;
+                    if (startDate) return itemDate >= startDate;
+                    if (endDate) return itemDate <= endDate;
+                    return true;
+                });
+            }
+
             if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Belum ada riwayat laporan tersimpan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Belum ada riwayat laporan tersimpan atau sesuai filter tanggal.</td></tr>`;
                 return;
             }
 
@@ -489,19 +535,25 @@
                 item.problems.forEach(prob => {
                     html += `
                         <tr>
-                            <td><small class="fw-semibold">${item.header.tanggal}</small><br><span class="badge bg-secondary">${item.header.hari}</span></td>
+                            <td><small class="fw-bold">${item.header.tanggal}</small><br><span class="badge bg-secondary">${item.header.hari}</span></td>
                             <td><span class="badge bg-info text-dark">${item.header.shift}</span></td>
                             <td><span class="text-danger fw-bold">${item.header.rejectionRate}%</span></td>
-                            <td><strong>${prob.mesin}</strong><br><small class="text-muted">${prob.bagianMesin}</small></td>
-                            <td>${prob.problemDesc}</td>
-                            <td>${prob.fotoProblem ? `<img src="${prob.fotoProblem}" width="50" height="50" class="rounded object-fit-cover shadow-sm cursor-pointer" onclick="showModalImage('${prob.fotoProblem}')">` : '-'}</td>
-                            <td>${prob.improvementDesc}</td>
-                            <td>${prob.fotoImprovement ? `<img src="${prob.fotoImprovement}" width="50" height="50" class="rounded object-fit-cover shadow-sm cursor-pointer" onclick="showModalImage('${prob.fotoImprovement}')">` : '-'}</td>
+                            <td><strong class="text-dark">${prob.mesin}</strong><br><small class="text-muted fw-semibold">${prob.bagianMesin}</small></td>
+                            <td class="text-dark fw-medium">${prob.problemDesc}</td>
+                            <td>${prob.fotoProblem ? `<img src="${prob.fotoProblem}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoProblem}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
+                            <td class="text-dark fw-medium">${prob.improvementDesc}</td>
+                            <td>${prob.fotoImprovement ? `<img src="${prob.fotoImprovement}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoImprovement}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
                         </tr>
                     `;
                 });
             });
             tbody.innerHTML = html;
+        }
+
+        function resetFilter() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            renderHistoryTable();
         }
 
         function showModalImage(src) {
@@ -532,9 +584,17 @@
         }
 
         function clearHistory() {
-            if(confirm("Yakin ingin menghapus seluruh riwayat laporan lokal?")) {
-                localStorage.removeItem('extruder_reports');
-                renderHistoryTable();
+            const enteredPassword = prompt("Masukkan Password untuk menghapus seluruh riwayat:");
+            if (enteredPassword === null) return;
+
+            if (enteredPassword === DELETE_PASSWORD) {
+                if (confirm("Password benar. Yakin ingin menghapus seluruh riwayat laporan lokal?")) {
+                    localStorage.removeItem('extruder_reports');
+                    renderHistoryTable();
+                    alert("Riwayat berhasil dihapus.");
+                }
+            } else {
+                alert("Password salah! Penghapusan dibatalkan.");
             }
         }
     </script>
