@@ -947,7 +947,7 @@
                         <td><strong class="text-dark">${item.namaItem}</strong></td>
                         <td><small>Comp: ${comp} Kg<br>Metal: ${met} Kg<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
                         <td><span class="badge bg-warning text-dark mb-1">${prob.faktor}</span><br><strong class="text-dark">${prob.problemDesc}</strong></td>
-                        <td><span class="text-danger fw-bold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span><br><span class="badge ${badgeClass} mt-1">${badgeText}</span></td>
+                        <td><span class="text-danger fw-bold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span></td>
                         <td><small><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}<br><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</small></td>
                         <td><small>${(prob.tindakanList || []).join('; ')}</small></td>
                         <td><div class="d-flex flex-wrap">${probImgHtml || '<span class="text-muted small">No Prob</span>'}</div><div class="d-flex flex-wrap mt-1">${impImgHtml || '<span class="text-muted small">No Imp</span>'}</div></td>
