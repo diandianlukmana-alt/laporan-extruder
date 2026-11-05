@@ -336,17 +336,6 @@
         </div>
     </div>
 
-    <!-- MODAL LOADING / PROSES PENGIRIMAN -->
-    <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content border-0 shadow text-center p-4">
-                <div class="spinner-border text-primary mx-auto mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-                <h5 class="fw-bold mb-1">Sedang Mengirim...</h5>
-                <p class="text-muted small mb-0">Menyimpan data & foto ke Google Sheets & Drive.</p>
-            </div>
-        </div>
-    </div>
-
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -354,8 +343,7 @@
         // ==========================================
         // KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL
         // ==========================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHBSPBsx57lbz7pTG9UD9IOm4QE2GVPJsQrvgKYmgzAIA1z3sPKzrRP9D-GIZL3_zDGg/exec
-"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHBSPBsx57lbz7pTG9UD9IOm4QE2GVPJsQrvgKYmgzAIA1z3sPKzrRP9D-GIZL3_zDGg/exec"; 
 
         // PASSWORD KEAMANAN
         const DELETE_PASSWORD = "hapus1234";
@@ -475,82 +463,79 @@
         }
 
         async function handleFormSubmit(event) {
-    event.preventDefault();
+            event.preventDefault();
 
-    // 1. AMBIL TOMBOL KIRIM DAN UBAH TAMPILANNYA SEARA INSTAN
-    const submitBtn = document.getElementById('submitBtn');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sedang Mengirim ke Google Sheets & Drive...`;
+            // Ubah tombol secara instan saat diklik untuk menampilkan animasi loading
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sedang Mengirim ke Google Sheets & Drive...`;
 
-    // 2. KUMPULKAN DATA FORM
-    const headerData = {
-        hari: document.getElementById('hari').value,
-        tanggal: document.getElementById('tanggal').value,
-        shift: document.getElementById('shift').value,
-        rejectionRate: document.getElementById('rejectionRate').value,
-        supervisor: "Supervisor Extruder"
-    };
+            const headerData = {
+                hari: document.getElementById('hari').value,
+                tanggal: document.getElementById('tanggal').value,
+                shift: document.getElementById('shift').value,
+                rejectionRate: document.getElementById('rejectionRate').value,
+                supervisor: "Supervisor Extruder"
+            };
 
-    const problemCards = document.querySelectorAll('.problem-item-card');
-    const problemsArray = [];
+            const problemCards = document.querySelectorAll('.problem-item-card');
+            const problemsArray = [];
 
-    for (let card of problemCards) {
-        const mesin = card.querySelector('.problem-mesin').value;
-        const bagianMesin = card.querySelector('.problem-bagian').value;
-        const problemDesc = card.querySelector('.problem-desc').value;
-        const improvementDesc = card.querySelector('.improvement-desc').value;
-        
-        const problemImgEl = card.querySelector('.problem-foto-file').parentElement.querySelector('img');
-        const improvementImgEl = card.querySelector('.improvement-foto-file').parentElement.querySelector('img');
+            for (let card of problemCards) {
+                const mesin = card.querySelector('.problem-mesin').value;
+                const bagianMesin = card.querySelector('.problem-bagian').value;
+                const problemDesc = card.querySelector('.problem-desc').value;
+                const improvementDesc = card.querySelector('.improvement-desc').value;
+                
+                const problemImgEl = card.querySelector('.problem-foto-file').parentElement.querySelector('img');
+                const improvementImgEl = card.querySelector('.improvement-foto-file').parentElement.querySelector('img');
 
-        problemsArray.push({
-            mesin: mesin,
-            bagianMesin: bagianMesin,
-            problemDesc: problemDesc,
-            improvementDesc: improvementDesc,
-            fotoProblem: problemImgEl ? problemImgEl.src : "",
-            fotoImprovement: improvementImgEl ? improvementImgEl.src : ""
-        });
-    }
+                problemsArray.push({
+                    mesin: mesin,
+                    bagianMesin: bagianMesin,
+                    problemDesc: problemDesc,
+                    improvementDesc: improvementDesc,
+                    fotoProblem: problemImgEl ? problemImgEl.src : "",
+                    fotoImprovement: improvementImgEl ? improvementImgEl.src : ""
+                });
+            }
 
-    const payload = {
-        header: headerData,
-        problems: problemsArray
-    };
+            const payload = {
+                header: headerData,
+                problems: problemsArray
+            };
 
-    saveToLocalStorage(payload);
+            saveToLocalStorage(payload);
 
-    // 3. KIRIM DATA KE GOOGLE APPS SCRIPT
-    if(GOOGLE_SCRIPT_URL) {
-        try {
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            alert(result.message || "Laporan Berhasil Terkirim ke Google Sheets & Drive!");
-        } catch(err) {
-            console.error(err);
-            alert("Data tersimpan di lokal, namun gagal terkirim ke server Apps Script.");
+            if(GOOGLE_SCRIPT_URL) {
+                try {
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    alert(result.message || "Laporan Berhasil Terkirim ke Google Sheets & Drive!");
+                } catch(err) {
+                    console.error(err);
+                    alert("Data tersimpan di lokal, namun gagal terkirim ke server Apps Script.");
+                }
+            }
+
+            // Kembalikan tombol ke semula
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+
+            document.getElementById('productionForm').reset();
+            document.getElementById('problemCardsContainer').innerHTML = '';
+            cardIndex = 0;
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tanggal').value = today;
+            updateHari();
+            addProblemCard();
+            switchTab('history');
         }
-    }
-
-    // 4. KEMBALIKAN TOMBOL KE SEMULA SETELAH SELESAI
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-
-    // Reset form & pindah ke tab riwayat
-    document.getElementById('productionForm').reset();
-    document.getElementById('problemCardsContainer').innerHTML = '';
-    cardIndex = 0;
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('tanggal').value = today;
-    updateHari();
-    addProblemCard();
-    switchTab('history');
-}
 
         function saveToLocalStorage(payload) {
             let history = JSON.parse(localStorage.getItem('extruder_reports') || '[]');
