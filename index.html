@@ -272,18 +272,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQIeXED1Y13QxqNqxVzGU7ty_XQ542QYESgTnmUIJ4Q0dCGDafwUGqR5Di89_ASAKh9g/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQfxDZHVweVCoJdLpnwJ_cTo1fpMucU7_QyGT_IPLrUwrBlDqzK6bP97meZHdQ3SWSdg/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
+        let dynamicMasterItems = [];
         let itemIndex = 0;
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
             updateHari();
+            
+            // Tarik data item dari Google Sheets ("Code Item") saat web dimuat
+            await fetchMasterItemsFromSheet();
+            
             addItemBlock();
             loadHistory();
         });
+
+        // FUNGSI MEMBACA ITEM DARI GOOGLE SHEETS
+        async function fetchMasterItemsFromSheet() {
+            if(!GOOGLE_SCRIPT_URL) return;
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const result = await response.json();
+                if(result.status === "success" && Array.isArray(result.items)) {
+                    dynamicMasterItems = result.items;
+                }
+            } catch(err) {
+                console.error("Gagal mengambil master item dari sheet:", err);
+            }
+        }
 
         function updateHari() {
             const dateVal = document.getElementById('tanggal').value;
@@ -293,12 +312,22 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
-        // TAMBAH BLOK ITEM PRODUK BARU
         function addItemBlock(existingData = null) {
             itemIndex++;
             const currentItemIdx = itemIndex;
             const container = document.getElementById('itemBlocksContainer');
             const itemBlockId = `item-block-${currentItemIdx}`;
+
+            const isExistingCustom = existingData && !dynamicMasterItems.includes(existingData.namaItem);
+            const customInputDisplay = isExistingCustom ? "block" : "none";
+            const customInputValue = isExistingCustom ? existingData.namaItem : "";
+
+            let dropdownOptions = `<option value="" disabled ${!existingData ? 'selected' : ''}>Pilih Item Produk...</option>`;
+            dynamicMasterItems.forEach(item => {
+                const selected = (existingData && existingData.namaItem === item) ? 'selected' : '';
+                dropdownOptions += `<option value="${item}" ${selected}>${item}</option>`;
+            });
+            dropdownOptions += `<option value="CUSTOM_INPUT">✏️ Ketik Nama Item Lain (Manual)...</option>`;
 
             const html = `
                 <div class="item-block-card" id="${itemBlockId}" data-item-idx="${currentItemIdx}">
@@ -310,7 +339,10 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-secondary">Nama / Kode Item</label>
-                            <input type="text" class="form-control item-nama" placeholder="Misal: Item A, Rubber Seal X" value="${existingData ? existingData.namaItem : ''}" required>
+                            <select class="form-select item-dropdown mb-2" onchange="handleItemDropdownChange('${itemBlockId}')" required>
+                                ${dropdownOptions}
+                            </select>
+                            <input type="text" class="form-control item-nama-custom mt-1" placeholder="Ketik nama item baru..." value="${customInputValue}" style="display: ${customInputDisplay};" ${isExistingCustom ? 'required' : ''}>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-secondary">Pemakaian Compound (Kg)</label>
@@ -348,12 +380,28 @@
             }
         }
 
+        function handleItemDropdownChange(itemBlockId) {
+            const block = document.getElementById(itemBlockId);
+            const dropdown = block.querySelector('.item-dropdown');
+            const customInput = block.querySelector('.item-nama-custom');
+
+            if (dropdown.value === "CUSTOM_INPUT") {
+                customInput.style.display = "block";
+                customInput.value = "";
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customInput.style.display = "none";
+                customInput.value = dropdown.value;
+                customInput.required = false;
+            }
+        }
+
         function removeItemBlock(itemBlockId) {
             const el = document.getElementById(itemBlockId);
             if(el) el.remove();
         }
 
-        // TAMBAH PROBLEM DI DALAM ITEM PRODUK
         function addProblemToItem(itemBlockId, existingProb = null) {
             const problemsContainer = document.getElementById(`problems-container-${itemBlockId}`);
             const probCount = problemsContainer.children.length + 1;
@@ -416,7 +464,6 @@
             if(el) el.remove();
         }
 
-        // KALKULASI OTOMATIS PERSENTASE REJECT PER ITEM
         function calculateItemTotals(itemBlockId) {
             const block = document.getElementById(itemBlockId);
             const compound = parseFloat(block.querySelector('.item-compound').value) || 0;
@@ -465,7 +512,6 @@
             }
         }
 
-        // SUBMIT FORM DATA (SIMPAN BARU ATAU REVISI/EDIT)
         async function handleFormSubmit(event) {
             event.preventDefault();
 
@@ -489,7 +535,10 @@
             const itemsArray = [];
 
             for (let block of itemBlocks) {
-                const namaItem = block.querySelector('.item-nama').value;
+                const dropdown = block.querySelector('.item-dropdown');
+                const customInput = block.querySelector('.item-nama-custom');
+                let namaItem = dropdown.value === "CUSTOM_INPUT" ? customInput.value : dropdown.value;
+
                 const compound = block.querySelector('.item-compound').value;
                 const metalInsert = block.querySelector('.item-metal').value;
 
@@ -622,7 +671,6 @@
             tbody.innerHTML = html;
         }
 
-        // FITUR REVISI / EDIT LAPORAN
         function editReport(reportId) {
             let history = JSON.parse(localStorage.getItem('extruder_reports_v2') || '[]');
             const report = history.find(r => r.reportId === reportId);
