@@ -343,7 +343,7 @@
         // ==========================================
         // KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL
         // ==========================================
-        const GOOGLE_SCRIPT_URL = https://script.google.com/macros/s/AKfycbzHBSPBsx57lbz7pTG9UD9IOm4QE2GVPJsQrvgKYmgzAIA1z3sPKzrRP9D-GIZL3_zDGg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHBSPBsx57lbz7pTG9UD9IOm4QE2GVPJsQrvgKYmgzAIA1z3sPKzrRP9D-GIZL3_zDGg/exec"; 
 
         // PASSWORD KEAMANAN
         const DELETE_PASSWORD = "hapus1234";
@@ -614,16 +614,13 @@
             const enteredPassword = document.getElementById('deletePasswordInput').value;
 
             if (enteredPassword === DELETE_PASSWORD) {
-                // Tutup modal password
                 const modalEl = document.getElementById('deleteModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 modal.hide();
 
-                // 1. Hapus memori lokal web
                 localStorage.removeItem('extruder_reports');
                 renderHistoryTable();
 
-                // 2. Kirim perintah hapus ke Google Sheets via Apps Script
                 if (GOOGLE_SCRIPT_URL) {
                     try {
                         const response = await fetch(GOOGLE_SCRIPT_URL, {
