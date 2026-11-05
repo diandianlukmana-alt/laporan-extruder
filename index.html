@@ -272,7 +272,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTxvMnuzONGuisGVi8sW-ASOp9M82qVXHlW6JZFv1jWGh0ra0MoPCFpYKiYIVbOJslPA/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAVFwiBYs60ALE9HfzHirZxprG9avbLa_A4CoIoxa_AsCjW9VHo_5uJ_sWpgdgzUBXtw/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
         let dynamicMasterItems = [];
@@ -283,10 +283,13 @@
             document.getElementById('tanggal').value = today;
             updateHari();
             
-            // Tarik data item dari Google Sheets ("Code Item") saat web dimuat
+            // 1. Buat blok item pertama terlebih dahulu
+            addItemBlock();
+
+            // 2. Tarik data master item dari Google Sheets ("Code Item" Kolom A)
             await fetchMasterItemsFromSheet();
             
-            addItemBlock();
+            // 3. Muat riwayat laporan
             loadHistory();
         });
 
@@ -298,6 +301,21 @@
                 const result = await response.json();
                 if(result.status === "success" && Array.isArray(result.items)) {
                     dynamicMasterItems = result.items;
+                    
+                    // Perbarui dropdown item yang sudah ada di halaman
+                    document.querySelectorAll('.item-block-card').forEach(block => {
+                        const select = block.querySelector('.item-dropdown');
+                        const currentValue = select.value;
+                        
+                        let dropdownOptions = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Item Produk...</option>`;
+                        dynamicMasterItems.forEach(item => {
+                            const selected = (currentValue === item) ? 'selected' : '';
+                            dropdownOptions += `<option value="${item}" ${selected}>${item}</option>`;
+                        });
+                        dropdownOptions += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Nama Item Lain (Manual)...</option>`;
+                        
+                        select.innerHTML = dropdownOptions;
+                    });
                 }
             } catch(err) {
                 console.error("Gagal mengambil master item dari sheet:", err);
