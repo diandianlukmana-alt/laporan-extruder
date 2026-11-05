@@ -25,7 +25,7 @@
             padding-bottom: 3rem;
         }
 
-        .navbar-brand { font-weight: 700; color: #0f172a !important; }
+        .navbar-brand { font-weight: 700; color: #0f172a !important; font-size: 1.1rem; }
         .glass-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -94,10 +94,31 @@
         .table-custom th { background-color: #1e293b; color: #ffffff; font-weight: 600; white-space: nowrap; }
         .table-img-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 0.3rem; cursor: pointer; border: 1px solid #cbd5e1; margin-right: 3px; }
 
+        /* OPTIMASI TAMPILAN MOBILE / HP KECIL */
+        @media (max-width: 768px) {
+            .desktop-table-view { display: none !important; }
+            .mobile-card-view { display: block !important; }
+        }
+        @media (min-width: 769px) {
+            .desktop-table-view { display: block !important; }
+            .mobile-card-view { display: none !important; }
+        }
+
+        .history-mobile-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
         @media print {
             body { background: white !important; padding: 0 !important; }
             .navbar, .btn, .no-print { display: none !important; }
             .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .desktop-table-view { display: block !important; }
+            .mobile-card-view { display: none !important; }
         }
     </style>
 </head>
@@ -108,11 +129,11 @@
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
                 <i class="fa-solid fa-industry text-primary"></i>
-                <span>LAPORAN PROBLEM PRODUKSI EXTRUDER</span>
+                <span>LAPORAN PROBLEM EXTRUDER</span>
             </a>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm fw-semibold" onclick="switchTab('form')"><i class="fa-solid fa-pen-to-square me-1"></i> Form Input</button>
-                <button class="btn btn-outline-secondary btn-sm fw-semibold" onclick="switchTab('history')"><i class="fa-solid fa-chart-line me-1"></i> Dashboard & Riwayat</button>
+                <button class="btn btn-outline-primary btn-sm fw-semibold" onclick="switchTab('form')"><i class="fa-solid fa-pen-to-square me-1"></i> Form</button>
+                <button class="btn btn-outline-secondary btn-sm fw-semibold" onclick="switchTab('history')"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</button>
             </div>
         </div>
     </nav>
@@ -121,11 +142,11 @@
         <!-- TAB 1: FORM INPUT -->
         <div id="section-form" class="row justify-content-center">
             <div class="col-lg-11">
-                <div class="glass-card p-4 p-md-5 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <div class="glass-card p-3 p-md-5 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
                         <div>
-                            <h3 class="fw-bold mb-1 text-dark" id="formTitle"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER</h3>
-                            <p class="text-muted small mb-0">Isi data header shift, nama pembuat laporan (PIC), pemakaian material, kategori problem, analisa, follow-up, tindakan, dan multi-foto.</p>
+                            <h3 class="fw-bold mb-1 text-dark fs-4" id="formTitle"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER</h3>
+                            <p class="text-muted small mb-0">Isi data header shift, PIC, pemakaian material, kategori problem, analisa, follow-up, tindakan, dan multi-foto.</p>
                         </div>
                         <span class="badge bg-primary px-3 py-2 rounded-pill" id="formModeBadge">Input Baru</span>
                     </div>
@@ -165,13 +186,13 @@
                             </div>
                             <div class="col-md">
                                 <label class="form-label small fw-bold text-secondary">Nama Pembuat Laporan (PIC)</label>
-                                <input type="text" id="picName" class="form-control" placeholder="Nama Supervisor / Operator..." required>
+                                <input type="text" id="picName" class="form-control" placeholder="Nama Supervisor/Operator..." required>
                             </div>
                         </div>
 
                         <!-- CONTAINER MULTI ITEM -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-boxes-stacked me-2"></i>Daftar Pemakaian Material & Item Produk</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h5 class="fw-bold text-primary mb-0 fs-5"><i class="fa-solid fa-boxes-stacked me-2"></i>Daftar Pemakaian Material & Item Produk</h5>
                             <button type="button" class="btn btn-sm btn-success fw-semibold" onclick="addItemBlock()">
                                 <i class="fa-solid fa-plus me-1"></i> Tambah Item Produk
                             </button>
@@ -196,13 +217,13 @@
         <!-- TAB 2: DASHBOARD & RIWAYAT -->
         <div id="section-history" class="row justify-content-center d-none">
             <div class="col-lg-12">
-                <div class="glass-card p-4 p-md-5 mb-4">
+                <div class="glass-card p-3 p-md-5 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
                         <div>
-                            <h3 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-chart-line text-primary me-2"></i>Dashboard & Riwayat Laporan Extruder</h3>
-                            <p class="text-muted small mb-0">Analisis statistik KPI Keseluruhan (Target 6.5% untuk Line 1-4), grafik kategori problem tertinggi, dan riwayat.</p>
+                            <h3 class="fw-bold mb-1 text-dark fs-4"><i class="fa-solid fa-chart-line text-primary me-2"></i>Dashboard & Riwayat Laporan Extruder</h3>
+                            <p class="text-muted small mb-0">Analisis statistik KPI Keseluruhan (Target 6.5% untuk Line 1-4), grafik kategori problem, dan riwayat.</p>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 flex-wrap">
                             <button class="btn btn-outline-primary btn-sm fw-semibold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Cetak / PDF</button>
                             <button class="btn btn-outline-success btn-sm fw-semibold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
                             <button class="btn btn-outline-danger btn-sm fw-semibold" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
@@ -211,36 +232,36 @@
 
                     <!-- KARTU STATISTIK KPI KESELURUHAN (TARGET 6.5%) & JUDGE -->
                     <div class="row g-3 mb-4">
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4 border-info">
-                                <span class="text-muted small fw-bold">KPI TARGET KESELURUHAN</span>
-                                <h4 class="fw-bold text-info mb-0 mt-1">6.50%</h4>
+                                <span class="text-muted small fw-bold d-block">KPI TARGET KESELURUHAN</span>
+                                <h4 class="fw-bold text-info mb-0 mt-1 fs-5">6.50%[cite: 5]</h4>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4 border-primary">
-                                <span class="text-muted small fw-bold">TOTAL MATERIAL (LINE 1-4)</span>
-                                <h4 class="fw-bold text-dark mb-0 mt-1" id="statTotalMaterial">0.0 Kg</h4>
+                                <span class="text-muted small fw-bold d-block">TOTAL MATERIAL (LINE 1-4)</span>
+                                <h4 class="fw-bold text-dark mb-0 mt-1 fs-5" id="statTotalMaterial">0.0 Kg[cite: 5]</h4>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4 border-danger">
-                                <span class="text-muted small fw-bold">TOTAL REJECTION (LINE 1-4)</span>
-                                <h4 class="fw-bold text-danger mb-0 mt-1" id="statTotalReject">0.0 Kg</h4>
+                                <span class="text-muted small fw-bold d-block">TOTAL REJECTION (LINE 1-4)</span>
+                                <h4 class="fw-bold text-danger mb-0 mt-1 fs-5" id="statTotalReject">0.0 Kg[cite: 5]</h4>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4" id="statCardJudgeBorder">
-                                <span class="text-muted small fw-bold">AKTUAL & JUDGE (LINE 1-4)</span>
-                                <div class="d-flex align-items-center justify-content-between mt-1">
-                                    <h4 class="fw-bold mb-0" id="statAvgReject">0.00%</h4>
-                                    <span class="badge px-3 py-2 fs-6" id="statJudgeBadge">-</span>
+                                <span class="text-muted small fw-bold d-block">AKTUAL & JUDGE (LINE 1-4)</span>
+                                <div class="d-flex align-items-center justify-content-between mt-1 flex-wrap">
+                                    <h4 class="fw-bold mb-0 fs-5" id="statAvgReject">0.00%[cite: 5]</h4>
+                                    <span class="badge px-2 py-1 fs-6" id="statJudgeBadge">-</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- GRAFIK CHART.JS (FAKTOR & TOP 10 KATEGORI REJECTION) -->
+                    <!-- GRAFIK CHART.JS -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
@@ -256,17 +277,17 @@
                         </div>
                     </div>
 
-                    <!-- FILTER & SORT LANJUTAN (TERMASUK SORT ITEM & DESKRIPSI PROBLEM) -->
+                    <!-- FILTER & SORT LANJUTAN -->
                     <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded border">
-                        <div class="col-md-2">
+                        <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-secondary">Dari Tanggal</label>
                             <input type="date" id="filterStartDate" class="form-control" onchange="renderHistoryTable()">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-secondary">Sampai Tanggal</label>
                             <input type="date" id="filterEndDate" class="form-control" onchange="renderHistoryTable()">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-secondary">Mesin</label>
                             <select id="filterMachine" class="form-select" onchange="renderHistoryTable()">
                                 <option value="">Semua Mesin</option>
@@ -277,24 +298,25 @@
                                 <option value="FLOKLES">FLOKLES</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-secondary">Sort Nama / Kode Item</label>
+                        <div class="col-md-2 col-6">
+                            <label class="form-label small fw-bold text-secondary">Sort Item</label>
                             <select id="filterItem" class="form-select" onchange="renderHistoryTable()">
                                 <option value="">Semua Item</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-secondary">Sort Deskripsi Problem</label>
+                        <div class="col-md-2 col-6">
+                            <label class="form-label small fw-bold text-secondary">Sort Problem</label>
                             <select id="filterProblemDesc" class="form-select" onchange="renderHistoryTable()">
                                 <option value="">Semua Problem</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 col-6">
                             <button class="btn btn-secondary w-100 fw-semibold" onclick="resetFilter()"><i class="fa-solid fa-rotate-left me-1"></i> Reset</button>
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <!-- 1. TAMPILAN DESKTOP (TABEL BIASA) -->
+                    <div class="table-responsive desktop-table-view">
                         <table class="table table-custom table-hover align-middle border">
                             <thead>
                                 <tr>
@@ -309,9 +331,13 @@
                                     <th>Foto Bukti</th>
                                 </tr>
                             </thead>
-                            <tbody id="historyTableBody"></tbody>
+                            <tbody id="historyTableBodyDesktop"></tbody>
                         </table>
                     </div>
+
+                    <!-- 2. TAMPILAN MOBILE / HP (CARD VIEW YANG SANGAT RAPI) -->
+                    <div class="mobile-card-view" id="historyCardBodyMobile"></div>
+
                 </div>
             </div>
         </div>
@@ -357,7 +383,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxb4YM619VIhX8uwv6mnpmV8l1-9pS27NbN7jMMh5VMpo1VugoivICKqTa1woM8ginuPg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAVFwiBYs60ALE9HfzHirZxprG9avbLa_A4CoIoxa_AsCjW9VHo_5uJ_sWpgdgzUBXtw/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
         let dynamicMasterItems = [];
@@ -402,8 +428,7 @@
             const itemSelect = document.getElementById('filterItem');
             const currentItemVal = itemSelect.value;
             let itemOpts = `<option value="">Semua Item</option>`;
-            // Ambil unique item dari history & master
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v5') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             let uniqueItems = new Set([...dynamicMasterItems]);
             history.forEach(r => (r.items || []).forEach(i => { if(i.namaItem) uniqueItems.add(i.namaItem); }));
             uniqueItems.forEach(item => {
@@ -834,17 +859,18 @@
         }
 
         function saveToLocalStorage(payload) {
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v6') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(payload.isEdit) {
                 history = history.filter(item => item.reportId !== payload.reportId);
             }
             history.unshift(payload);
-            localStorage.setItem('extruder_reports_v6', JSON.stringify(history));
+            localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
         }
 
         function renderHistoryTable() {
-            const tbody = document.getElementById('historyTableBody');
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v6') || '[]');
+            const tbodyDesktop = document.getElementById('historyTableBodyDesktop');
+            const cardBodyMobile = document.getElementById('historyCardBodyMobile');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
 
             const startDate = document.getElementById('filterStartDate').value;
             const endDate = document.getElementById('filterEndDate').value;
@@ -861,7 +887,6 @@
                 return true;
             });
 
-            // Filter mendalam per item & problem desc
             let processedRows = [];
             filteredHistory.forEach(report => {
                 (report.items || []).forEach(item => {
@@ -880,11 +905,14 @@
             updateDashboardMetrics(filteredHistory);
 
             if(processedRows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Belum ada riwayat laporan yang sesuai.</td></tr>`;
+                tbodyDesktop.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Belum ada riwayat laporan yang sesuai.</td></tr>`;
+                cardBodyMobile.innerHTML = `<div class="text-center text-muted py-4 bg-white rounded border">Belum ada riwayat laporan yang sesuai.</div>`;
                 return;
             }
 
-            let html = '';
+            let htmlDesktop = '';
+            let htmlMobile = '';
+
             processedRows.forEach(row => {
                 const report = row.report;
                 const item = row.item;
@@ -908,7 +936,8 @@
                 const badgeText = isOk ? "OK (Tercapai)" : "NG (Tidak Tercapai)";
                 const picName = report.header.pic || "-";
 
-                html += `
+                // 1. RENDER DESKTOP TABLE ROW
+                htmlDesktop += `
                     <tr>
                         <td class="no-print">
                             <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -924,11 +953,59 @@
                         <td><div class="d-flex flex-wrap">${probImgHtml || '<span class="text-muted small">No Prob</span>'}</div><div class="d-flex flex-wrap mt-1">${impImgHtml || '<span class="text-muted small">No Imp</span>'}</div></td>
                     </tr>
                 `;
+
+                // 2. RENDER MOBILE CARD VIEW (SANGAT NYAMAN DILIHAT DI HP)
+                htmlMobile += `
+                    <div class="history-mobile-card">
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-2">
+                            <div>
+                                <span class="badge bg-primary mb-1">${report.header.namaMesin}</span>
+                                <span class="badge bg-secondary mb-1">${report.header.shift}</span>
+                                <h6 class="fw-bold text-dark mb-0 mt-1">${item.namaItem}</h6>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">${report.header.tanggal}</small>
+                                <small class="text-muted"><i class="fa-solid fa-user me-1"></i>${picName}</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 small">
+                            <div class="col-6">
+                                <span class="text-muted d-block">Material:</span>
+                                <strong>Comp: ${comp} | Metal: ${met}</strong> (Tot: ${totMat.toFixed(1)} Kg)
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="text-muted d-block">Rejection:</span>
+                                <strong class="text-danger">${prob.rejectionKg} Kg (${prob.rejectionPercent})</strong>
+                                <br><span class="badge ${badgeClass}" style="font-size: 10px;">${badgeText}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-2 rounded mb-2 small">
+                            <span class="badge bg-warning text-dark mb-1">${prob.faktor}</span>
+                            <strong class="text-dark d-block mb-1">Problem: ${prob.problemDesc}</strong>
+                            <div><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}</div>
+                            <div><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</div>
+                            <div class="mt-1 text-success"><strong>Tindakan:</strong> ${(prob.tindakanList || []).join('; ')}</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1 border-top">
+                            <div class="d-flex gap-1 flex-wrap">
+                                ${probImgHtml} ${impImgHtml}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary py-1 px-2" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
+                                <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
-            tbody.innerHTML = html;
+
+            tbodyDesktop.innerHTML = htmlDesktop;
+            cardBodyMobile.innerHTML = htmlMobile;
         }
 
-        // PERHITUNGAN KPI KESELURUHAN (TARGET 6.5%) HANYA LINE 1 - LINE 4 (FLOKLES DIKECUALIKAN)
         function updateDashboardMetrics(dataList) {
             let totalMatSum = 0, totalRejectSum = 0;
             let factorCounts = { "MESIN": 0, "METHODE": 0, "MATERIAL": 0, "MAN": 0, "ENVIRONMENT": 0 };
@@ -994,9 +1071,7 @@
             });
         }
 
-        // GRAFIK 10 KATEGORI REJECTION TERTINGGI
         function renderTopProblemChart(problemData) {
-            // Urutkan dari terbesar ke terkecil dan ambil 10 teratas
             const sorted = Object.entries(problemData).sort((a,b) => b[1] - a[1]).slice(0, 10);
             const labels = sorted.map(item => item[0]);
             const dataVals = sorted.map(item => item[1]);
@@ -1016,14 +1091,14 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal bar agar nama problem panjang terbaca jelas
+                    indexAxis: 'y',
                     scales: { x: { beginAtZero: true } }
                 }
             });
         }
 
         function editReport(reportId) {
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v6') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             const report = history.find(r => r.reportId === reportId);
             if(!report) return;
 
@@ -1115,7 +1190,7 @@
             bootstrap.Modal.getInstance(modalEl).hide();
 
             if (deleteTargetAction === 'all') {
-                localStorage.removeItem('extruder_reports_v6');
+                localStorage.removeItem('extruder_reports_v7');
                 renderHistoryTable();
                 if (GOOGLE_SCRIPT_URL) {
                     try {
@@ -1124,9 +1199,9 @@
                     } catch(err) { alert("Riwayat lokal terhapus."); }
                 }
             } else {
-                let history = JSON.parse(localStorage.getItem('extruder_reports_v6') || '[]');
+                let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
                 history = history.filter(r => r.reportId !== deleteTargetAction);
-                localStorage.setItem('extruder_reports_v6', JSON.stringify(history));
+                localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
                 renderHistoryTable();
                 if (GOOGLE_SCRIPT_URL) {
                     try {
@@ -1138,7 +1213,7 @@
         }
 
         function exportToCSV() {
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v6') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
             let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Compound,Metal,Total,Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
