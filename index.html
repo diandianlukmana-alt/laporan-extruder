@@ -9,6 +9,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Membuat Header Tabel Menempel (Freeze / Sticky) saat Scroll */
+.table-responsive {
+    max-height: 650px;
+    overflow-y: auto;
+}
+.table-custom thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #1e293b !important;
+}
         :root {
             --bg-primary: #f1f5f9;
             --accent-blue: #0284c7;
@@ -266,13 +277,13 @@
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
                                 <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-pie me-2"></i>Akumulasi Rejection Berdasarkan Faktor</h6>
-                                <canvas id="factorChart" style="max-height: 250px;"></canvas>
+                                <canvas id="factorChart" style="max-height: 180px;"></canvas>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
                                 <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-bar me-2"></i>10 Kategori Rejection Tertinggi (Kg)</h6>
-                                <canvas id="topProblemChart" style="max-height: 250px;"></canvas>
+                                <canvas id="topProblemChart" style="max-height: 180px;"></canvas>
                             </div>
                         </div>
                     </div>
