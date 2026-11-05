@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Problem Harian Produksi Extruder</title>
+    <title>Laporan Problem Produksi Extruder</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -13,13 +13,10 @@
     <style>
         :root {
             --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
             --accent-blue: #0284c7;
-            --accent-dark: #1e293b;
             --card-bg: #ffffff;
             --border-color: #cbd5e1;
             --text-main: #0f172a;
-            --text-muted: #475569;
         }
 
         body {
@@ -30,52 +27,39 @@
             padding-bottom: 3rem;
         }
 
-        .navbar-brand {
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #0f172a !important;
-        }
-
+        .navbar-brand { font-weight: 700; color: #0f172a !important; }
         .glass-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
         }
 
-        .container-fluid-custom {
-            max-width: 98%;
-            margin: 0 auto;
-        }
+        .container-fluid-custom { max-width: 98%; margin: 0 auto; }
 
         .form-control, .form-select {
             background-color: #f8fafc;
             border: 1px solid #94a3b8;
             color: #0f172a;
             border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 0.9rem;
             font-weight: 500;
         }
 
-        .form-control:focus, .form-select:focus {
-            background-color: #ffffff;
-            border-color: var(--accent-blue);
-            color: #0f172a;
-            box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.2);
+        .item-block-card {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.85rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .problem-item-card {
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .problem-item-card:hover {
-            border-color: var(--accent-blue);
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+            background: #f1f5f9;
+            border: 1px dashed #94a3b8;
+            border-radius: 0.65rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
         }
 
         .btn-primary-custom {
@@ -85,74 +69,24 @@
             font-weight: 600;
             border-radius: 0.5rem;
             padding: 0.75rem 1.5rem;
-            transition: all 0.2s;
-        }
-
-        .btn-primary-custom:hover {
-            background: linear-gradient(135deg, #0369a1 100%, #075985 100%);
-            color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(3, 105, 161, 0.3);
         }
 
         .img-preview-box {
             width: 100%;
-            height: 120px;
+            height: 110px;
             border: 2px dashed #94a3b8;
             border-radius: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: #f1f5f9;
+            background: #f8fafc;
             cursor: pointer;
-            position: relative;
-            color: #475569;
         }
 
-        .img-preview-box:hover {
-            border-color: var(--accent-blue);
-            background: #e2e8f0;
-        }
-
-        .img-preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .table-custom th {
-            background-color: #1e293b;
-            color: #ffffff;
-            font-weight: 600;
-            padding: 1rem 0.75rem;
-            border-bottom: 2px solid #cbd5e1;
-            white-space: nowrap;
-        }
-
-        .table-custom td {
-            background-color: #ffffff;
-            color: #0f172a;
-            border-color: #e2e8f0;
-            vertical-align: middle;
-            padding: 1rem 0.75rem;
-            font-size: 0.95rem;
-        }
-
-        .table-img-thumb {
-            width: 90px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            border: 2px solid #cbd5e1;
-            transition: transform 0.2s;
-        }
-
-        .table-img-thumb:hover {
-            transform: scale(1.05);
-            border-color: var(--accent-blue);
-        }
+        .img-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .table-custom th { background-color: #1e293b; color: #ffffff; font-weight: 600; white-space: nowrap; }
+        .table-img-thumb { width: 75px; height: 75px; object-fit: cover; border-radius: 0.4rem; cursor: pointer; border: 1px solid #cbd5e1; }
     </style>
 </head>
 <body>
@@ -174,22 +108,24 @@
     <div class="container-fluid container-fluid-custom">
         <!-- TAB 1: FORM INPUT -->
         <div id="section-form" class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-11">
                 <div class="glass-card p-4 p-md-5 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                         <div>
-                            <h3 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER</h3>
-                            <p class="text-muted small mb-0">Isi data ringkasan shift dan tambahkan detail problem serta foto bukti.</p>
+                            <h3 class="fw-bold mb-1 text-dark" id="formTitle"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER</h3>
+                            <p class="text-muted small mb-0">Isi data header shift, pemakaian material per item, serta detail problem dan perbaikannya.</p>
                         </div>
-                        <span class="badge bg-primary px-3 py-2 rounded-pill">Shopfloor System</span>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill" id="formModeBadge">Input Baru</span>
                     </div>
 
                     <form id="productionForm" onsubmit="handleFormSubmit(event)">
-                        <!-- HEADER SHIFT -->
-                        <div class="row g-3 mb-4">
+                        <input type="hidden" id="editReportId" value="">
+
+                        <!-- HEADER SHIFT & MESIN -->
+                        <div class="row g-3 mb-4 p-3 bg-light rounded border">
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-secondary">Hari</label>
-                                <input type="text" id="hari" class="form-control bg-light" readonly required>
+                                <input type="text" id="hari" class="form-control bg-white" readonly required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-secondary">Tanggal</label>
@@ -205,33 +141,37 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label small fw-bold text-secondary">Persentase Rejection (%)</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" min="0" max="100" id="rejectionRate" class="form-control" placeholder="Contoh: 1.25" required>
-                                    <span class="input-group-text bg-secondary text-white border-secondary">%</span>
-                                </div>
+                                <label class="form-label small fw-bold text-secondary">Nama Mesin Utama</label>
+                                <select id="namaMesin" class="form-select" required>
+                                    <option value="" disabled selected>Pilih Mesin...</option>
+                                    <option value="LINE 1">LINE 1</option>
+                                    <option value="LINE 2">LINE 2</option>
+                                    <option value="LINE 3">LINE 3</option>
+                                    <option value="LINE 4">LINE 4</option>
+                                    <option value="FLOKLES">FLOKLES</option>
+                                </select>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-
-                        <!-- CONTAINER MULTI PROBLEM -->
+                        <!-- CONTAINER MULTI ITEM -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-triangle-exclamation me-2"></i>Daftar Detail Problem & Improvement</h5>
-                            <button type="button" class="btn btn-sm btn-primary fw-semibold" onclick="addProblemCard()">
-                                <i class="fa-solid fa-plus me-1"></i> Tambah Problem
+                            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-boxes-stacked me-2"></i>Daftar Pemakaian Material & Item Produk</h5>
+                            <button type="button" class="btn btn-sm btn-success fw-semibold" onclick="addItemBlock()">
+                                <i class="fa-solid fa-plus me-1"></i> Tambah Item Produk
                             </button>
                         </div>
-                        <p class="text-muted small">Supervisor dapat menambahkan lebih dari satu laporan problem dalam satu shift.</p>
 
-                        <div id="problemCardsContainer" class="d-flex flex-column gap-3 mb-4">
-                            <!-- Dynamic Problem Cards -->
+                        <div id="itemBlocksContainer">
+                            <!-- Dynamic Item Blocks -->
                         </div>
 
                         <!-- TOMBOL SUBMIT -->
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 mt-4">
                             <button type="submit" id="submitBtn" class="btn btn-primary-custom btn-lg py-3">
                                 <i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive
+                            </button>
+                            <button type="button" id="cancelEditBtn" class="btn btn-outline-secondary d-none" onclick="resetFormToNew()">
+                                Batal Revisi (Kembali ke Input Baru)
                             </button>
                         </div>
                     </form>
@@ -246,11 +186,11 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
                         <div>
                             <h3 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Riwayat Laporan Tersimpan</h3>
-                            <p class="text-muted small mb-0">Daftar laporan shift dan problem yang tercatat.</p>
+                            <p class="text-muted small mb-0">Kelola, revisi/edit, atau hapus riwayat data laporan shift.</p>
                         </div>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-success btn-sm fw-semibold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
-                            <button class="btn btn-outline-danger btn-sm fw-semibold" onclick="openDeleteModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Riwayat</button>
+                            <button class="btn btn-outline-danger btn-sm fw-semibold" onclick="openDeleteModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua Riwayat</button>
                         </div>
                     </div>
 
@@ -264,7 +204,7 @@
                             <label class="form-label small fw-bold text-secondary">Sampai Tanggal</label>
                             <input type="date" id="filterEndDate" class="form-control" onchange="renderHistoryTable()">
                         </div>
-                        <div class="col-md-4 d-flex gap-2">
+                        <div class="col-md-4">
                             <button class="btn btn-secondary w-100 fw-semibold" onclick="resetFilter()"><i class="fa-solid fa-rotate-left me-1"></i> Reset Filter</button>
                         </div>
                     </div>
@@ -273,13 +213,15 @@
                         <table class="table table-custom table-hover align-middle border">
                             <thead>
                                 <tr>
-                                    <th>Waktu / Tanggal</th>
-                                    <th>Shift</th>
-                                    <th>% Reject</th>
-                                    <th>Mesin & Bagian</th>
-                                    <th style="min-width: 250px;">Deskripsi Problem</th>
+                                    <th>Aksi</th>
+                                    <th>Waktu / Mesin</th>
+                                    <th>Item Produk</th>
+                                    <th>Pemakaian Material</th>
+                                    <th>Faktor</th>
+                                    <th style="min-width: 200px;">Deskripsi Problem</th>
+                                    <th>Rejection (Kg / %)</th>
                                     <th>Foto Problem</th>
-                                    <th style="min-width: 250px;">Tindakan Improvement</th>
+                                    <th style="min-width: 200px;">Tindakan Improvement</th>
                                     <th>Foto Improvement</th>
                                 </tr>
                             </thead>
@@ -298,7 +240,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="imageModalTitle">Pratinjau Foto Bukti</h5>
+                    <h5 class="modal-title">Pratinjau Foto Bukti</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-3 bg-light">
@@ -308,7 +250,7 @@
         </div>
     </div>
 
-    <!-- MODAL PASSWORD HAPUS RIWAYAT -->
+    <!-- MODAL PASSWORD HAPUS -->
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -317,16 +259,8 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small mb-3">Masukkan password supervisor untuk menghapus seluruh riwayat data secara permanen dari Web dan Google Sheets.</p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Password Hapus</label>
-                        <div class="input-group">
-                            <input type="password" id="deletePasswordInput" class="form-control" placeholder="Masukkan password...">
-                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
-                                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <p class="text-muted small mb-3">Masukkan password supervisor untuk menghapus seluruh riwayat data secara permanen.</p>
+                    <input type="password" id="deletePasswordInput" class="form-control" placeholder="Masukkan password...">
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
@@ -336,23 +270,18 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // ==========================================
-        // KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL
-        // ==========================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHBSPBsx57lbz7pTG9UD9IOm4QE2GVPJsQrvgKYmgzAIA1z3sPKzrRP9D-GIZL3_zDGg/exec"; 
-
-        // PASSWORD KEAMANAN
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQIeXED1Y13QxqNqxVzGU7ty_XQ542QYESgTnmUIJ4Q0dCGDafwUGqR5Di89_ASAKh9g/exec"; 
         const DELETE_PASSWORD = "hapus1234";
+
+        let itemIndex = 0;
 
         document.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
             updateHari();
-            addProblemCard();
+            addItemBlock();
             loadHistory();
         });
 
@@ -364,77 +293,152 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
-        let cardIndex = 0;
-
-        function addProblemCard() {
-            cardIndex++;
-            const container = document.getElementById('problemCardsContainer');
-            const cardId = `problem-card-${cardIndex}`;
+        // TAMBAH BLOK ITEM PRODUK BARU
+        function addItemBlock(existingData = null) {
+            itemIndex++;
+            const currentItemIdx = itemIndex;
+            const container = document.getElementById('itemBlocksContainer');
+            const itemBlockId = `item-block-${currentItemIdx}`;
 
             const html = `
-                <div class="problem-item-card" id="${cardId}">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-secondary fw-bold">Problem #${cardIndex}</span>
-                        ${cardIndex > 1 ? `<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCard('${cardId}')"><i class="fa-solid fa-trash"></i> Hapus</button>` : ''}
+                <div class="item-block-card" id="${itemBlockId}" data-item-idx="${currentItemIdx}">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-box text-primary me-2"></i>Item Produk #${currentItemIdx}</h6>
+                        ${currentItemIdx > 1 ? `<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItemBlock('${itemBlockId}')"><i class="fa-solid fa-trash"></i> Hapus Item</button>` : ''}
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Nama Mesin</label>
-                            <select class="form-select problem-mesin" required>
-                                <option value="" disabled selected>Pilih Mesin...</option>
-                                <option value="LINE 1">LINE 1</option>
-                                <option value="LINE 2">LINE 2</option>
-                                <option value="LINE 3">LINE 3</option>
-                                <option value="LINE 4">LINE 4</option>
-                                <option value="FLOKLES">FLOKLES</option>
-                            </select>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary">Nama / Kode Item</label>
+                            <input type="text" class="form-control item-nama" placeholder="Misal: Item A, Rubber Seal X" value="${existingData ? existingData.namaItem : ''}" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Bagian Mesin (Input Manual)</label>
-                            <input type="text" class="form-control problem-bagian" placeholder="Misal: Drilling, HAV, Accumulator, dll." required>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary">Pemakaian Compound (Kg)</label>
+                            <input type="number" step="0.1" min="0" class="form-control item-compound" placeholder="0" value="${existingData ? existingData.compound : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-secondary">Deskripsi Problem / Kejadian</label>
-                            <textarea class="form-control problem-desc" rows="2" placeholder="Jelaskan detail kendala teknis atau penyebab barang reject..." required></textarea>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary">Pemakaian Metal Insert (Kg)</label>
+                            <input type="number" step="0.1" min="0" class="form-control item-metal" placeholder="0" value="${existingData ? existingData.metalInsert : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Foto Bukti Problem</label>
-                            <div class="img-preview-box" onclick="triggerFileInput(this)">
-                                <div class="text-center">
-                                    <i class="fa-solid fa-camera fa-lg mb-1 d-block text-primary"></i>
-                                    <span class="small fw-semibold">Ambil / Upload Foto Problem</span>
-                                </div>
-                                <input type="file" accept="image/*" class="d-none problem-foto-file" onchange="previewImage(this)">
-                            </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary">Total Material (Kg)</label>
+                            <input type="text" class="form-control bg-light fw-bold item-total-material" readonly value="${existingData ? (parseFloat(existingData.compound||0) + parseFloat(existingData.metalInsert||0)) + ' Kg' : '0 Kg'}">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Foto Bukti Improvement (Setelah Perbaikan)</label>
-                            <div class="img-preview-box" onclick="triggerFileInput(this)">
-                                <div class="text-center">
-                                    <i class="fa-solid fa-camera fa-lg mb-1 d-block text-success"></i>
-                                    <span class="small fw-semibold">Ambil / Upload Foto Improvement</span>
-                                </div>
-                                <input type="file" accept="image/*" class="d-none improvement-foto-file" onchange="previewImage(this)">
-                            </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded border mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-secondary"><i class="fa-solid fa-triangle-exclamation me-1"></i>Detail Problem & Rejection Item Ini</span>
+                            <button type="button" class="btn btn-xs btn-primary fw-semibold py-1 px-2" onclick="addProblemToItem('${itemBlockId}')">
+                                <i class="fa-solid fa-plus me-1"></i> Tambah Problem
+                            </button>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-secondary">Tindakan Improvement / Perbaikan</label>
-                            <textarea class="form-control improvement-desc" rows="2" placeholder="Jelaskan tindakan korektif atau preventif yang dilakukan..." required></textarea>
+                        <div class="problems-container d-flex flex-column gap-2" id="problems-container-${itemBlockId}">
+                            <!-- Dynamic Problems -->
                         </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
+
+            if(existingData && existingData.problems) {
+                existingData.problems.forEach(pData => addProblemToItem(itemBlockId, pData));
+            } else {
+                addProblemToItem(itemBlockId);
+            }
         }
 
-        function removeCard(cardId) {
-            const el = document.getElementById(cardId);
+        function removeItemBlock(itemBlockId) {
+            const el = document.getElementById(itemBlockId);
             if(el) el.remove();
+        }
+
+        // TAMBAH PROBLEM DI DALAM ITEM PRODUK
+        function addProblemToItem(itemBlockId, existingProb = null) {
+            const problemsContainer = document.getElementById(`problems-container-${itemBlockId}`);
+            const probCount = problemsContainer.children.length + 1;
+            const probCardId = `${itemBlockId}-prob-${probCount}`;
+
+            const html = `
+                <div class="problem-item-card" id="${probCardId}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-secondary">Problem #${probCount}</span>
+                        ${probCount > 1 ? `<button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="removeProblemCard('${probCardId}')"><i class="fa-solid fa-xmark"></i> Hapus</button>` : ''}
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label micro-label fw-bold text-secondary">Faktor</label>
+                            <select class="form-select prob-faktor" required>
+                                <option value="" disabled ${!existingProb ? 'selected' : ''}>Pilih Faktor...</option>
+                                <option value="MESIN" ${existingProb && existingProb.faktor === 'MESIN' ? 'selected' : ''}>MESIN</option>
+                                <option value="METHODE" ${existingProb && existingProb.faktor === 'METHODE' ? 'selected' : ''}>METHODE</option>
+                                <option value="MATERIAL" ${existingProb && existingProb.faktor === 'MATERIAL' ? 'selected' : ''}>MATERIAL</option>
+                                <option value="MAN" ${existingProb && existingProb.faktor === 'MAN' ? 'selected' : ''}>MAN (OPERATOR)</option>
+                                <option value="ENVIRONMENT" ${existingProb && existingProb.faktor === 'ENVIRONMENT' ? 'selected' : ''}>ENVIRONMENT</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label micro-label fw-bold text-secondary">Jumlah Rejection (Kg)</label>
+                            <input type="number" step="0.1" min="0" class="form-control prob-reject-kg" placeholder="0" value="${existingProb ? existingProb.rejectionKg : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label micro-label fw-bold text-secondary">Persentase Reject (%)</label>
+                            <input type="text" class="form-control bg-light fw-bold text-danger prob-reject-percent" readonly value="${existingProb && existingProb.rejectionPercent ? existingProb.rejectionPercent : '0.00%'}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label micro-label fw-bold text-secondary">Deskripsi Problem</label>
+                            <input type="text" class="form-control prob-desc" placeholder="Contoh: Balon Bolong" value="${existingProb ? existingProb.problemDesc : ''}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label micro-label fw-bold text-secondary">Foto Problem</label>
+                            <div class="img-preview-box" onclick="triggerFileInput(this)">
+                                ${existingProb && (existingProb.fotoProblem || existingProb.fotoProblemExisting) ? `<img src="${existingProb.fotoProblem || existingProb.fotoProblemExisting}" data-existing="${existingProb.fotoProblemExisting||''}"><input type="file" accept="image/*" class="d-none prob-foto-file" onchange="previewImage(this)">` : `<div class="text-center"><i class="fa-solid fa-camera text-primary"></i><span class="d-block small">Upload Foto Problem</span></div><input type="file" accept="image/*" class="d-none prob-foto-file" onchange="previewImage(this)">`}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label micro-label fw-bold text-secondary">Foto Improvement</label>
+                            <div class="img-preview-box" onclick="triggerFileInput(this)">
+                                ${existingProb && (existingProb.fotoImprovement || existingProb.fotoImprovementExisting) ? `<img src="${existingProb.fotoImprovement || existingProb.fotoImprovementExisting}" data-existing="${existingProb.fotoImprovementExisting||''}"><input type="file" accept="image/*" class="d-none imp-foto-file" onchange="previewImage(this)">` : `<div class="text-center"><i class="fa-solid fa-camera text-success"></i><span class="d-block small">Upload Foto Improvement</span></div><input type="file" accept="image/*" class="d-none imp-foto-file" onchange="previewImage(this)">`}
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label micro-label fw-bold text-secondary">Tindakan Improvement / Perbaikan</label>
+                            <input type="text" class="form-control imp-desc" placeholder="Jelaskan perbaikan yang dilakukan..." value="${existingProb ? existingProb.improvementDesc : ''}" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+            problemsContainer.insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeProblemCard(probCardId) {
+            const el = document.getElementById(probCardId);
+            if(el) el.remove();
+        }
+
+        // KALKULASI OTOMATIS PERSENTASE REJECT PER ITEM
+        function calculateItemTotals(itemBlockId) {
+            const block = document.getElementById(itemBlockId);
+            const compound = parseFloat(block.querySelector('.item-compound').value) || 0;
+            const metal = parseFloat(block.querySelector('.item-metal').value) || 0;
+            const totalMaterial = compound + metal;
+
+            block.querySelector('.item-total-material').value = totalMaterial.toFixed(1) + " Kg";
+
+            const problemCards = block.querySelectorAll('.problem-item-card');
+            problemCards.forEach(card => {
+                const rejectKg = parseFloat(card.querySelector('.prob-reject-kg').value) || 0;
+                let percent = 0;
+                if(totalMaterial > 0) {
+                    percent = (rejectKg / totalMaterial) * 100;
+                }
+                card.querySelector('.prob-reject-percent').value = percent.toFixed(2) + "%";
+            });
         }
 
         function triggerFileInput(boxElement) {
             const input = boxElement.querySelector('input[type="file"]');
-            input.click();
+            if(input) input.click();
         }
 
         function previewImage(input) {
@@ -442,7 +446,7 @@
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    box.innerHTML = `<img src="${e.target.result}" alt="Preview"><input type="file" accept="image/*" class="d-none ${input.className}" onchange="previewImage(this)">`;
+                    box.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*" class="d-none ${input.className}" onchange="previewImage(this)">`;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
@@ -451,7 +455,6 @@
         function switchTab(tabName) {
             const formSection = document.getElementById('section-form');
             const historySection = document.getElementById('section-history');
-
             if(tabName === 'form') {
                 formSection.classList.remove('d-none');
                 historySection.classList.add('d-none');
@@ -462,49 +465,73 @@
             }
         }
 
+        // SUBMIT FORM DATA (SIMPAN BARU ATAU REVISI/EDIT)
         async function handleFormSubmit(event) {
             event.preventDefault();
 
-            // Ubah tombol secara instan saat diklik untuk menampilkan animasi loading
             const submitBtn = document.getElementById('submitBtn');
             const originalBtnText = submitBtn.innerHTML;
-            
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sedang Mengirim ke Google Sheets & Drive...`;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan Data ke Google Sheets & Drive...`;
+
+            const editReportId = document.getElementById('editReportId').value;
+            const isEdit = editReportId !== "";
+            const reportId = isEdit ? editReportId : "REP-" + new Date().getTime();
 
             const headerData = {
                 hari: document.getElementById('hari').value,
                 tanggal: document.getElementById('tanggal').value,
                 shift: document.getElementById('shift').value,
-                rejectionRate: document.getElementById('rejectionRate').value,
-                supervisor: "Supervisor Extruder"
+                namaMesin: document.getElementById('namaMesin').value
             };
 
-            const problemCards = document.querySelectorAll('.problem-item-card');
-            const problemsArray = [];
+            const itemBlocks = document.querySelectorAll('.item-block-card');
+            const itemsArray = [];
 
-            for (let card of problemCards) {
-                const mesin = card.querySelector('.problem-mesin').value;
-                const bagianMesin = card.querySelector('.problem-bagian').value;
-                const problemDesc = card.querySelector('.problem-desc').value;
-                const improvementDesc = card.querySelector('.improvement-desc').value;
-                
-                const problemImgEl = card.querySelector('.problem-foto-file').parentElement.querySelector('img');
-                const improvementImgEl = card.querySelector('.improvement-foto-file').parentElement.querySelector('img');
+            for (let block of itemBlocks) {
+                const namaItem = block.querySelector('.item-nama').value;
+                const compound = block.querySelector('.item-compound').value;
+                const metalInsert = block.querySelector('.item-metal').value;
 
-                problemsArray.push({
-                    mesin: mesin,
-                    bagianMesin: bagianMesin,
-                    problemDesc: problemDesc,
-                    improvementDesc: improvementDesc,
-                    fotoProblem: problemImgEl ? problemImgEl.src : "",
-                    fotoImprovement: improvementImgEl ? improvementImgEl.src : ""
+                const probCards = block.querySelectorAll('.problem-item-card');
+                const problemsArray = [];
+
+                for (let card of probCards) {
+                    const faktor = card.querySelector('.prob-faktor').value;
+                    const rejectionKg = card.querySelector('.prob-reject-kg').value;
+                    const rejectionPercent = card.querySelector('.prob-reject-percent').value;
+                    const problemDesc = card.querySelector('.prob-desc').value;
+                    const improvementDesc = card.querySelector('.imp-desc').value;
+
+                    const probImgEl = card.querySelector('.prob-foto-file').parentElement.querySelector('img');
+                    const impImgEl = card.querySelector('.imp-foto-file').parentElement.querySelector('img');
+
+                    problemsArray.push({
+                        faktor: faktor,
+                        rejectionKg: rejectionKg,
+                        rejectionPercent: rejectionPercent,
+                        problemDesc: problemDesc,
+                        improvementDesc: improvementDesc,
+                        fotoProblem: probImgEl && probImgEl.src.startsWith('data:image') ? probImgEl.src : '',
+                        fotoProblemExisting: probImgEl ? (probImgEl.dataset.existing || probImgEl.src) : '',
+                        fotoImprovement: impImgEl && impImgEl.src.startsWith('data:image') ? impImgEl.src : '',
+                        fotoImprovementExisting: impImgEl ? (impImgEl.dataset.existing || impImgEl.src) : ''
+                    });
+                }
+
+                itemsArray.push({
+                    namaItem: namaItem,
+                    compound: compound,
+                    metalInsert: metalInsert,
+                    problems: problemsArray
                 });
             }
 
             const payload = {
+                reportId: reportId,
+                isEdit: isEdit,
                 header: headerData,
-                problems: problemsArray
+                items: itemsArray
             };
 
             saveToLocalStorage(payload);
@@ -516,31 +543,27 @@
                         body: JSON.stringify(payload)
                     });
                     const result = await response.json();
-                    alert(result.message || "Laporan Berhasil Terkirim ke Google Sheets & Drive!");
+                    alert(result.message || "Data Berhasil Disimpan!");
                 } catch(err) {
                     console.error(err);
-                    alert("Data tersimpan di lokal, namun gagal terkirim ke server Apps Script.");
+                    alert("Data tersimpan di browser lokal, namun gagal tersinkronisasi ke server.");
                 }
             }
 
-            // Kembalikan tombol ke semula
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
 
-            document.getElementById('productionForm').reset();
-            document.getElementById('problemCardsContainer').innerHTML = '';
-            cardIndex = 0;
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('tanggal').value = today;
-            updateHari();
-            addProblemCard();
+            resetFormToNew();
             switchTab('history');
         }
 
         function saveToLocalStorage(payload) {
-            let history = JSON.parse(localStorage.getItem('extruder_reports') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v2') || '[]');
+            if(payload.isEdit) {
+                history = history.filter(item => item.reportId !== payload.reportId);
+            }
             history.unshift(payload);
-            localStorage.setItem('extruder_reports', JSON.stringify(history));
+            localStorage.setItem('extruder_reports_v2', JSON.stringify(history));
         }
 
         function loadHistory() {
@@ -549,7 +572,7 @@
 
         function renderHistoryTable() {
             const tbody = document.getElementById('historyTableBody');
-            let history = JSON.parse(localStorage.getItem('extruder_reports') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v2') || '[]');
 
             const startDate = document.getElementById('filterStartDate').value;
             const endDate = document.getElementById('filterEndDate').value;
@@ -565,28 +588,83 @@
             }
 
             if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Belum ada riwayat laporan tersimpan atau sesuai filter tanggal.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-4">Belum ada riwayat laporan tersimpan.</td></tr>`;
                 return;
             }
 
             let html = '';
-            history.forEach(item => {
-                item.problems.forEach(prob => {
-                    html += `
-                        <tr>
-                            <td><small class="fw-bold">${item.header.tanggal}</small><br><span class="badge bg-secondary">${item.header.hari}</span></td>
-                            <td><span class="badge bg-info text-dark">${item.header.shift}</span></td>
-                            <td><span class="text-danger fw-bold">${item.header.rejectionRate}%</span></td>
-                            <td><strong class="text-dark">${prob.mesin}</strong><br><small class="text-muted fw-semibold">${prob.bagianMesin}</small></td>
-                            <td class="text-dark fw-medium">${prob.problemDesc}</td>
-                            <td>${prob.fotoProblem ? `<img src="${prob.fotoProblem}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoProblem}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
-                            <td class="text-dark fw-medium">${prob.improvementDesc}</td>
-                            <td>${prob.fotoImprovement ? `<img src="${prob.fotoImprovement}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoImprovement}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
-                        </tr>
-                    `;
+            history.forEach(report => {
+                (report.items || []).forEach(item => {
+                    const comp = parseFloat(item.compound) || 0;
+                    const met = parseFloat(item.metalInsert) || 0;
+                    const totMat = comp + met;
+
+                    (item.problems || []).forEach(prob => {
+                        html += `
+                            <tr>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square"></i> Revisi</button>
+                                </td>
+                                <td><small class="fw-bold">${report.header.tanggal}</small><br><span class="badge bg-secondary">${report.header.shift}</span><br><strong class="text-primary">${report.header.namaMesin}</strong></td>
+                                <td><strong class="text-dark">${item.namaItem}</strong></td>
+                                <td><small>Comp: ${comp} Kg<br>Metal: ${met} Kg<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
+                                <td><span class="badge bg-warning text-dark">${prob.faktor}</span></td>
+                                <td class="text-dark fw-medium">${prob.problemDesc}</td>
+                                <td><span class="text-danger fw-bold">${prob.rejectionKg} Kg</span><br><small class="text-muted">(${prob.rejectionPercent})</small></td>
+                                <td>${(prob.fotoProblem || prob.fotoProblemExisting) ? `<img src="${prob.fotoProblem || prob.fotoProblemExisting}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoProblem || prob.fotoProblemExisting}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
+                                <td class="text-dark fw-medium">${prob.improvementDesc}</td>
+                                <td>${(prob.fotoImprovement || prob.fotoImprovementExisting) ? `<img src="${prob.fotoImprovement || prob.fotoImprovementExisting}" class="table-img-thumb shadow-sm" onclick="showModalImage('${prob.fotoImprovement || prob.fotoImprovementExisting}')">` : '<span class="text-muted small">Tidak ada</span>'}</td>
+                            </tr>
+                        `;
+                    });
                 });
             });
             tbody.innerHTML = html;
+        }
+
+        // FITUR REVISI / EDIT LAPORAN
+        function editReport(reportId) {
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v2') || '[]');
+            const report = history.find(r => r.reportId === reportId);
+            if(!report) return;
+
+            document.getElementById('editReportId').value = report.reportId;
+            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-warning me-2"></i>REVISI LAPORAN PRODUKSI EXTRUDER`;
+            document.getElementById('formModeBadge').className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
+            document.getElementById('formModeBadge').innerText = "Mode Revisi Data";
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i> Simpan Hasil Revisi Laporan`;
+            document.getElementById('cancelEditBtn').classList.remove('d-none');
+
+            document.getElementById('tanggal').value = report.header.tanggal;
+            updateHari();
+            document.getElementById('shift').value = report.header.shift;
+            document.getElementById('namaMesin').value = report.header.namaMesin;
+
+            document.getElementById('itemBlocksContainer').innerHTML = '';
+            itemIndex = 0;
+
+            (report.items || []).forEach(item => {
+                addItemBlock(item);
+            });
+
+            switchTab('form');
+        }
+
+        function resetFormToNew() {
+            document.getElementById('editReportId').value = "";
+            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER`;
+            document.getElementById('formModeBadge').className = "badge bg-primary px-3 py-2 rounded-pill";
+            document.getElementById('formModeBadge').innerText = "Input Baru";
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive`;
+            document.getElementById('cancelEditBtn').classList.add('d-none');
+
+            document.getElementById('productionForm').reset();
+            document.getElementById('itemBlocksContainer').innerHTML = '';
+            itemIndex = 0;
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tanggal').value = today;
+            updateHari();
+            addItemBlock();
         }
 
         function resetFilter() {
@@ -607,20 +685,6 @@
             modal.show();
         }
 
-        function togglePasswordVisibility() {
-            const pwdInput = document.getElementById('deletePasswordInput');
-            const icon = document.getElementById('togglePasswordIcon');
-            if (pwdInput.type === 'password') {
-                pwdInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                pwdInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
         async function executeClearHistory() {
             const enteredPassword = document.getElementById('deletePasswordInput').value;
 
@@ -629,7 +693,7 @@
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 modal.hide();
 
-                localStorage.removeItem('extruder_reports');
+                localStorage.removeItem('extruder_reports_v2');
                 renderHistoryTable();
 
                 if (GOOGLE_SCRIPT_URL) {
@@ -642,10 +706,8 @@
                         alert(result.message || "Riwayat di Web dan Google Sheets berhasil dikosongkan!");
                     } catch(err) {
                         console.error(err);
-                        alert("Riwayat lokal terhapus, namun gagal terhubung ke server untuk menghapus Google Sheets.");
+                        alert("Riwayat lokal terhapus, namun gagal terhubung ke server.");
                     }
-                } else {
-                    alert("Riwayat lokal berhasil dihapus.");
                 }
             } else {
                 alert("Password salah! Penghapusan dibatalkan.");
@@ -653,13 +715,18 @@
         }
 
         function exportToCSV() {
-            let history = JSON.parse(localStorage.getItem('extruder_reports') || '[]');
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v2') || '[]');
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
-            let csv = "Tanggal,Hari,Shift,Rejection (%),Mesin,Bagian Mesin,Deskripsi Problem,Tindakan Improvement\n";
-            history.forEach(item => {
-                item.problems.forEach(p => {
-                    csv += `"${item.header.tanggal}","${item.header.hari}","${item.header.shift}","${item.header.rejectionRate}%","${p.mesin}","${p.bagianMesin}","${p.problemDesc.replace(/"/g, '""')}","${p.improvementDesc.replace(/"/g, '""')}"\n`;
+            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,Nama Item,Compound (Kg),Metal Insert (Kg),Total Material (Kg),Faktor,Deskripsi Problem,Rejection (Kg),Rejection (%),Tindakan Improvement\n";
+            history.forEach(report => {
+                (report.items || []).forEach(item => {
+                    const comp = parseFloat(item.compound) || 0;
+                    const met = parseFloat(item.metalInsert) || 0;
+                    const totMat = comp + met;
+                    (item.problems || []).forEach(p => {
+                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${item.namaItem}","${comp}","${met}","${totMat}","${p.faktor}","${p.problemDesc.replace(/"/g, '""')}","${p.rejectionKg}","${p.rejectionPercent}","${p.improvementDesc.replace(/"/g, '""')}"\n`;
+                    });
                 });
             });
 
