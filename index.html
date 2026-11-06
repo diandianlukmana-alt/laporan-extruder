@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -60,9 +61,6 @@
             box-shadow: 0 15px 35px -5px rgba(79, 70, 229, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
             animation: fadeInUp 0.6s ease-out forwards;
-        }
-        .glass-card:hover {
-            box-shadow: 0 20px 40px -5px rgba(79, 70, 229, 0.15);
         }
 
         .container-fluid-custom { max-width: 98%; margin: 0 auto; }
@@ -144,11 +142,6 @@
             position: relative;
             transition: all 0.2s ease;
         }
-        .img-preview-box:hover {
-            background: #e0e7ff;
-            border-color: #4f46e5;
-            transform: scale(1.03);
-        }
         .img-preview-box img { width: 100%; height: 100%; object-fit: cover; }
 
         .table-responsive {
@@ -165,11 +158,7 @@
             top: 0;
             z-index: 10;
         }
-        .table-custom tbody tr {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-        .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; transition: transform 0.2s; }
-        .table-img-thumb:hover { transform: scale(1.1); }
+        .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
         @media (max-width: 768px) {
             .desktop-table-view { display: none !important; }
@@ -187,15 +176,13 @@
             padding: 1.25rem;
             margin-bottom: 1rem;
             box-shadow: 0 6px 15px -3px rgba(79, 70, 229, 0.1);
-            animation: fadeInUp 0.4s ease-out forwards;
         }
 
-        @media print {
-            body { background: white !important; padding: 0 !important; }
-            .navbar, .btn, .no-print { display: none !important; }
-            .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
-            .desktop-table-view { display: block !important; }
-            .mobile-card-view { display: none !important; }
+        /* Styling khusus untuk cetak PDF laporan riwayat rapi */
+        #pdfExportContainer {
+            background: white;
+            padding: 20px;
+            color: #0f172a;
         }
     </style>
 </head>
@@ -256,7 +243,7 @@
                                     <option value="LINE 2">LINE 2 (Target ≤ 6.5%)</option>
                                     <option value="LINE 3">LINE 3 (Target ≤ 6.0%)</option>
                                     <option value="LINE 4">LINE 4 (Target ≤ 7.0%)</option>
-                                    <option value="FLOKLES">FLOKLES (Target ≤ 1.5% - Material ikut Line 3)</option>
+                                    <option value="FLOKLES">FLOKLES (Target ≤ 1.5%)</option>
                                 </select>
                             </div>
                             <div class="col-md">
@@ -276,7 +263,7 @@
 
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" id="submitBtn" class="btn btn-primary-custom btn-lg py-3">
-                                <i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive
+                                <i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive & WA
                             </button>
                             <button type="button" id="cancelEditBtn" class="btn btn-outline-secondary d-none fw-bold" onclick="resetFormToNew()">
                                 Batal Revisi (Kembali ke Input Baru)
@@ -297,7 +284,7 @@
                             <p class="text-dark fw-bold small mb-0">KPI PRODUCTION EXTRUDER AUTOSEAL</p>
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
-                            <button class="btn btn-outline-primary btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Cetak / PDF</button>
+                            <button class="btn btn-outline-primary btn-sm fw-bold" onclick="exportHistoryPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Unduh PDF Laporan</button>
                             <button class="btn btn-outline-success btn-sm fw-bold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
                             <button class="btn btn-outline-danger btn-sm fw-bold" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
                         </div>
@@ -385,23 +372,32 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive desktop-table-view">
-                        <table class="table table-custom table-hover align-middle border">
-                            <thead>
-                                <tr>
-                                    <th class="no-print">Aksi</th>
-                                    <th>Waktu / Shift / PIC</th>
-                                    <th>Item Produk</th>
-                                    <th>Material (Kg)</th>
-                                    <th>Faktor & Problem</th>
-                                    <th>Rejection & KPI</th>
-                                    <th>Analisa & Follow Up</th>
-                                    <th>Tindakan Improvement</th>
-                                    <th>Foto Bukti</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBodyDesktop"></tbody>
-                        </table>
+                    <!-- AREA YANG AKAN DICETAK JADI PDF (TAMPILANNYA SEPERTI RIWAYAT LAPORAN) -->
+                    <div id="pdfExportContainer">
+                        <div class="text-center mb-3 d-none" id="pdfHeaderTitle">
+                            <h4 class="fw-bold text-dark">PT INOAC POLYTECHNO INDONESIA</h4>
+                            <h5 class="fw-semibold text-primary">LAPORAN REKAPITULASI PROBLEM EXTRUDER</h5>
+                            <hr>
+                        </div>
+
+                        <div class="table-responsive desktop-table-view">
+                            <table class="table table-custom table-hover align-middle border">
+                                <thead>
+                                    <tr>
+                                        <th class="no-print">Aksi / WA</th>
+                                        <th>Waktu / Shift / PIC</th>
+                                        <th>Item Produk</th>
+                                        <th>Material (Kg)</th>
+                                        <th>Faktor & Problem</th>
+                                        <th>Rejection & % Shift</th>
+                                        <th>Analisa & Follow Up</th>
+                                        <th>Tindakan Improvement</th>
+                                        <th>Foto Bukti</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBodyDesktop"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="mobile-card-view" id="historyCardBodyMobile"></div>
@@ -500,13 +496,6 @@
                         dynamicMasterMetals = [...new Set([...dynamicMasterMetals, ...result.metals])];
                     }
                     saveLocalMaterialMasters();
-
-                    document.querySelectorAll('.item-block-card').forEach(block => {
-                        refreshItemDropdown(block);
-                        block.querySelectorAll('.problem-item-card').forEach(pCard => refreshCategoryDropdown(pCard));
-                        block.querySelectorAll('.sub-compound-row').forEach(cRow => refreshCompoundDropdown(cRow));
-                        block.querySelectorAll('.sub-metal-row').forEach(mRow => refreshMetalDropdown(mRow));
-                    });
                     populateFilterDropdowns();
                 }
             } catch(err) {
@@ -535,50 +524,6 @@
                 probOpts += `<option value="${prob}" ${currentProbVal === prob ? 'selected' : ''}>${prob}</option>`;
             });
             probSelect.innerHTML = probOpts;
-        }
-
-        function refreshItemDropdown(block) {
-            const select = block.querySelector('.item-dropdown');
-            const currentValue = select.value;
-            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Item Produk...</option>`;
-            dynamicMasterItems.forEach(item => {
-                options += `<option value="${item}" ${currentValue === item ? 'selected' : ''}>${item}</option>`;
-            });
-            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Nama Item Lain (Manual)...</option>`;
-            select.innerHTML = options;
-        }
-
-        function refreshCategoryDropdown(pCard) {
-            const select = pCard.querySelector('.prob-desc-dropdown');
-            const currentValue = select.value;
-            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Kategori Problem...</option>`;
-            dynamicCategories.forEach(cat => {
-                options += `<option value="${cat}" ${currentValue === cat ? 'selected' : ''}>${cat}</option>`;
-            });
-            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Deskripsi Problem Lain (Manual)...</option>`;
-            select.innerHTML = options;
-        }
-
-        function refreshCompoundDropdown(cRow) {
-            const select = cRow.querySelector('.comp-name-dropdown');
-            const currentValue = select.value;
-            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Compound...</option>`;
-            dynamicMasterCompounds.forEach(comp => {
-                options += `<option value="${comp}" ${currentValue === comp ? 'selected' : ''}>${comp}</option>`;
-            });
-            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Compound Baru (Manual)...</option>`;
-            select.innerHTML = options;
-        }
-
-        function refreshMetalDropdown(mRow) {
-            const select = mRow.querySelector('.metal-name-dropdown');
-            const currentValue = select.value;
-            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Metal Insert...</option>`;
-            dynamicMasterMetals.forEach(met => {
-                options += `<option value="${met}" ${currentValue === met ? 'selected' : ''}>${met}</option>`;
-            });
-            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Metal Insert Baru (Manual)...</option>`;
-            select.innerHTML = options;
         }
 
         function updateHari() {
@@ -676,25 +621,18 @@
             `;
             container.insertAdjacentHTML('beforeend', html);
 
-            // Populate Compound List
             if(existingData && existingData.compoundList && existingData.compoundList.length > 0) {
                 existingData.compoundList.forEach(c => addCompoundRow(itemBlockId, c));
-            } else if(existingData && existingData.compound) {
-                addCompoundRow(itemBlockId, { name: "Compound Utama", weight: existingData.compound });
             } else {
                 addCompoundRow(itemBlockId);
             }
 
-            // Populate Metal Insert List
             if(existingData && existingData.metalList && existingData.metalList.length > 0) {
                 existingData.metalList.forEach(m => addMetalRow(itemBlockId, m));
-            } else if(existingData && existingData.metalInsert && parseFloat(existingData.metalInsert) > 0) {
-                addMetalRow(itemBlockId, { name: "Metal Insert Utama", weight: existingData.metalInsert });
             } else {
                 addMetalRow(itemBlockId);
             }
 
-            // Populate Problems List
             if(existingData && existingData.problems) {
                 existingData.problems.forEach(pData => addProblemToItem(itemBlockId, pData));
             } else {
@@ -708,7 +646,6 @@
             const customInput = block.querySelector('.item-nama-custom');
             if (dropdown.value === "CUSTOM_INPUT") {
                 customInput.style.display = "block";
-                customInput.value = "";
                 customInput.required = true;
                 customInput.focus();
             } else {
@@ -722,22 +659,17 @@
             document.getElementById(itemBlockId)?.remove();
         }
 
-        /* --- LOGIKA BARIS MULTI COMPOUND --- */
         function addCompoundRow(itemBlockId, existingComp = null) {
             const container = document.getElementById(`compounds-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
             const cRowId = `${itemBlockId}-comp-${rowCount}`;
-
-            const isCustom = existingComp && !dynamicMasterCompounds.includes(existingComp.name);
-            const customDisplay = isCustom ? "block" : "none";
-            const customVal = isCustom ? existingComp.name : "";
 
             let compOptions = `<option value="" disabled ${!existingComp ? 'selected' : ''}>Pilih Jenis Compound...</option>`;
             dynamicMasterCompounds.forEach(c => {
                 const selected = (existingComp && existingComp.name === c) ? 'selected' : '';
                 compOptions += `<option value="${c}" ${selected}>${c}</option>`;
             });
-            compOptions += `<option value="CUSTOM_INPUT" ${isCustom ? 'selected' : ''}>✏️ Ketik Compound Baru (Manual)...</option>`;
+            compOptions += `<option value="CUSTOM_INPUT">✏️ Ketik Compound Baru (Manual)...</option>`;
 
             const html = `
                 <div class="row g-2 align-items-center sub-compound-row" id="${cRowId}">
@@ -745,7 +677,7 @@
                         <select class="form-select form-select-sm comp-name-dropdown" onchange="handleCompoundDropdownChange('${cRowId}')" required>
                             ${compOptions}
                         </select>
-                        <input type="text" class="form-control form-control-sm comp-name-custom mt-1" placeholder="Ketik nama compound baru..." value="${customVal}" style="display: ${customDisplay};" ${isCustom ? 'required' : ''}>
+                        <input type="text" class="form-control form-control-sm comp-name-custom mt-1" placeholder="Ketik nama compound baru..." style="display: none;">
                     </div>
                     <div class="col-md-5">
                         <div class="input-group input-group-sm">
@@ -768,32 +700,25 @@
             const customInput = row.querySelector('.comp-name-custom');
             if (dropdown.value === "CUSTOM_INPUT") {
                 customInput.style.display = "block";
-                customInput.value = "";
                 customInput.required = true;
                 customInput.focus();
             } else {
                 customInput.style.display = "none";
-                customInput.value = dropdown.value;
                 customInput.required = false;
             }
         }
 
-        /* --- LOGIKA BARIS MULTI METAL INSERT --- */
         function addMetalRow(itemBlockId, existingMetal = null) {
             const container = document.getElementById(`metals-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
             const mRowId = `${itemBlockId}-metal-${rowCount}`;
-
-            const isCustom = existingMetal && !dynamicMasterMetals.includes(existingMetal.name);
-            const customDisplay = isCustom ? "block" : "none";
-            const customVal = isCustom ? existingMetal.name : "";
 
             let metalOptions = `<option value="" disabled ${!existingMetal ? 'selected' : ''}>Pilih Jenis Metal Insert...</option>`;
             dynamicMasterMetals.forEach(m => {
                 const selected = (existingMetal && existingMetal.name === m) ? 'selected' : '';
                 metalOptions += `<option value="${m}" ${selected}>${m}</option>`;
             });
-            metalOptions += `<option value="CUSTOM_INPUT" ${isCustom ? 'selected' : ''}>✏️ Ketik Metal Insert Baru (Manual)...</option>`;
+            metalOptions += `<option value="CUSTOM_INPUT">✏️ Ketik Metal Insert Baru (Manual)...</option>`;
 
             const html = `
                 <div class="row g-2 align-items-center sub-metal-row" id="${mRowId}">
@@ -801,7 +726,7 @@
                         <select class="form-select form-select-sm metal-name-dropdown" onchange="handleMetalDropdownChange('${mRowId}')">
                             ${metalOptions}
                         </select>
-                        <input type="text" class="form-control form-control-sm metal-name-custom mt-1" placeholder="Ketik metal insert baru..." value="${customVal}" style="display: ${customDisplay};">
+                        <input type="text" class="form-control form-control-sm metal-name-custom mt-1" placeholder="Ketik metal insert baru..." style="display: none;">
                     </div>
                     <div class="col-md-5">
                         <div class="input-group input-group-sm">
@@ -824,12 +749,10 @@
             const customInput = row.querySelector('.metal-name-custom');
             if (dropdown.value === "CUSTOM_INPUT") {
                 customInput.style.display = "block";
-                customInput.value = "";
                 customInput.required = true;
                 customInput.focus();
             } else {
                 customInput.style.display = "none";
-                customInput.value = dropdown.value;
                 customInput.required = false;
             }
         }
@@ -844,16 +767,12 @@
             const probCount = problemsContainer.children.length + 1;
             const probCardId = `${itemBlockId}-prob-${probCount}`;
 
-            const isCustomDesc = existingProb && !dynamicCategories.includes(existingProb.problemDesc);
-            const descInputDisplay = isCustomDesc ? "block" : "none";
-            const descInputValue = isCustomDesc ? existingProb.problemDesc : "";
-
             let catOptions = `<option value="" disabled ${!existingProb ? 'selected' : ''}>Pilih Kategori Problem...</option>`;
             dynamicCategories.forEach(cat => {
                 const selected = (existingProb && existingProb.problemDesc === cat) ? 'selected' : '';
                 catOptions += `<option value="${cat}" ${selected}>${cat}</option>`;
             });
-            catOptions += `<option value="CUSTOM_INPUT" ${isCustomDesc ? 'selected' : ''}>✏️ Ketik Deskripsi Problem Lain (Manual)...</option>`;
+            catOptions += `<option value="CUSTOM_INPUT">✏️ Ketik Deskripsi Problem Lain (Manual)...</option>`;
 
             const html = `
                 <div class="problem-item-card" id="${probCardId}">
@@ -886,7 +805,7 @@
                             <select class="form-select prob-desc-dropdown mb-1" onchange="handleProblemDescChange('${probCardId}')" required>
                                 ${catOptions}
                             </select>
-                            <input type="text" class="form-control prob-desc-custom" placeholder="Ketik problem lain..." value="${descInputValue}" style="display: ${descInputDisplay};" ${isCustomDesc ? 'required' : ''}>
+                            <input type="text" class="form-control prob-desc-custom" placeholder="Ketik problem lain..." style="display: none;">
                         </div>
 
                         <div class="col-md-6 border-top pt-2">
@@ -932,11 +851,11 @@
             problemsContainer.insertAdjacentHTML('beforeend', html);
 
             if(existingProb) {
-                (existingProb.analisaList || [existingProb.analisa || '']).forEach(a => addAnalisaField(probCardId, a));
-                (existingProb.followUpList || [existingProb.followUp || '']).forEach(f => addFollowUpField(probCardId, f));
-                (existingProb.tindakanList || [existingProb.improvementDesc || '']).forEach(t => addTindakanField(probCardId, t));
-                (existingProb.fotoProblemList || [existingProb.fotoProblem || existingProb.fotoProblemExisting || '']).forEach(img => { if(img) addPhotoSlot(probCardId, 'prob', img); });
-                (existingProb.fotoImprovementList || [existingProb.fotoImprovement || existingProb.fotoImprovementExisting || '']).forEach(img => { if(img) addPhotoSlot(probCardId, 'imp', img); });
+                (existingProb.analisaList || []).forEach(a => addAnalisaField(probCardId, a));
+                (existingProb.followUpList || []).forEach(f => addFollowUpField(probCardId, f));
+                (existingProb.tindakanList || []).forEach(t => addTindakanField(probCardId, t));
+                (existingProb.fotoProblemList || []).forEach(img => { if(img) addPhotoSlot(probCardId, 'prob', img); });
+                (existingProb.fotoImprovementList || []).forEach(img => { if(img) addPhotoSlot(probCardId, 'imp', img); });
             } else {
                 addAnalisaField(probCardId);
                 addFollowUpField(probCardId);
@@ -952,12 +871,10 @@
             const customInput = card.querySelector('.prob-desc-custom');
             if (dropdown.value === "CUSTOM_INPUT") {
                 customInput.style.display = "block";
-                customInput.value = "";
                 customInput.required = true;
                 customInput.focus();
             } else {
                 customInput.style.display = "none";
-                customInput.value = dropdown.value;
                 customInput.required = false;
             }
         }
@@ -1025,7 +942,6 @@
             }
         }
 
-        /* --- PENJUMLAHAN RUMUS OTOMATIS (REALTIME) --- */
         function calculateItemTotals(itemBlockId) {
             const block = document.getElementById(itemBlockId);
             if(!block) return;
@@ -1096,45 +1012,31 @@
                 const customInput = block.querySelector('.item-nama-custom');
                 let namaItem = dropdown.value === "CUSTOM_INPUT" ? customInput.value : dropdown.value;
 
-                // Collect Compound List & Auto Save Master
                 const compoundList = [];
                 let totalCompoundKg = 0;
                 block.querySelectorAll('.sub-compound-row').forEach(cRow => {
                     const cDropdown = cRow.querySelector('.comp-name-dropdown');
                     const cCustom = cRow.querySelector('.comp-name-custom');
                     const wVal = parseFloat(cRow.querySelector('.comp-weight-input').value) || 0;
-                    
                     let cName = cDropdown.value === "CUSTOM_INPUT" ? cCustom.value.trim() : cDropdown.value;
                     if(cName && wVal > 0) {
                         compoundList.push({ name: cName, weight: wVal });
                         totalCompoundKg += wVal;
-
-                        if(cDropdown.value === "CUSTOM_INPUT" && !dynamicMasterCompounds.includes(cName)) {
-                            dynamicMasterCompounds.push(cName);
-                        }
                     }
                 });
 
-                // Collect Metal Insert List & Auto Save Master
                 const metalList = [];
                 let totalMetalKg = 0;
                 block.querySelectorAll('.sub-metal-row').forEach(mRow => {
                     const mDropdown = mRow.querySelector('.metal-name-dropdown');
                     const mCustom = mRow.querySelector('.metal-name-custom');
                     const wVal = parseFloat(mRow.querySelector('.metal-weight-input').value) || 0;
-                    
                     let mName = mDropdown.value === "CUSTOM_INPUT" ? mCustom.value.trim() : mDropdown.value;
                     if(mName && wVal > 0) {
                         metalList.push({ name: mName, weight: wVal });
                         totalMetalKg += wVal;
-
-                        if(mDropdown.value === "CUSTOM_INPUT" && !dynamicMasterMetals.includes(mName)) {
-                            dynamicMasterMetals.push(mName);
-                        }
                     }
                 });
-
-                saveLocalMaterialMasters();
 
                 const probCards = block.querySelectorAll('.problem-item-card');
                 const problemsArray = [];
@@ -1177,16 +1079,18 @@
 
             if(GOOGLE_SCRIPT_URL) {
                 try {
-                    const response = await fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-                    const result = await response.json();
-                    alert(result.message || "Data Berhasil Disimpan!");
+                    await fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
                 } catch(err) {
-                    alert("Data tersimpan lokal, namun gagal tersinkronisasi ke server.");
+                    console.error("Sinkronisasi gagal", err);
                 }
             }
 
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
+            
+            // Otomatis kirim pesan teks laporan ringkas ke WA Group/Personal setelah disimpan
+            sendReportToWhatsApp(reportId);
+
             resetFormToNew();
             switchTab('history');
         }
@@ -1198,6 +1102,80 @@
             }
             history.unshift(payload);
             localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
+        }
+
+        /* --- FITUR KIRIM KE WHATSAPP (GRATIS, PILIH GRUP/INDIVIDU) --- */
+        function sendReportToWhatsApp(reportId) {
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
+            const report = history.find(r => r.reportId === reportId);
+            if (!report) {
+                alert("Laporan tidak ditemukan!");
+                return;
+            }
+
+            let itemsText = "";
+            let totalShiftMaterial = 0;
+            let totalShiftReject = 0;
+
+            // Hitung total material & reject pada shift laporan ini
+            (report.items || []).forEach(item => {
+                const comp = parseFloat(item.compound) || 0;
+                const met = parseFloat(item.metalInsert) || 0;
+                totalShiftMaterial += (comp + met);
+                (item.problems || []).forEach(p => {
+                    totalShiftReject += parseFloat(p.rejectionKg) || 0;
+                });
+            });
+
+            const shiftRejectPercent = totalShiftMaterial > 0 ? ((totalShiftReject / totalShiftMaterial) * 100).toFixed(2) : '0.00';
+
+            (report.items || []).forEach((item, idx) => {
+                const comp = parseFloat(item.compound) || 0;
+                const met = parseFloat(item.metalInsert) || 0;
+                const totMat = comp + met;
+
+                itemsText += `\n📦 *Item #${idx + 1}: ${item.namaItem}*`;
+                itemsText += `\n   • Total Material: ${totMat.toFixed(1)} Kg`;
+
+                (item.problems || []).forEach(prob => {
+                    itemsText += `\n   • ⚠️ *Problem:* ${prob.problemDesc} (${prob.faktor})`;
+                    itemsText += `\n   • ❌ *Rejection:* ${prob.rejectionKg} Kg (${prob.rejectionPercent})`;
+                });
+            });
+
+            const picName = report.header.pic || "-";
+            const message = `📋 *LAPORAN PROBLEM EXTRUDER*
+----------------------------------
+📅 *Waktu:* ${report.header.hari}, ${report.header.tanggal} (${report.header.shift})
+⚙️ *Mesin:* ${report.header.namaMesin}
+👤 *PIC:* ${picName}
+----------------------------------${itemsText}
+----------------------------------
+📊 *TOTAL REJECTION SHIFT INI:* *${totalShiftReject.toFixed(1)} Kg (${shiftRejectPercent}%)*
+----------------------------------
+*Dikirim dari Sistem Laporan Extruder*`;
+
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        /* --- FUNGSI EKSPOR PDF SEPERTI TAMPILAN RIWAYAT --- */
+        function exportHistoryPDF() {
+            const element = document.getElementById('pdfExportContainer');
+            const titleEl = document.getElementById('pdfHeaderTitle');
+            titleEl.classList.remove('d-none');
+
+            const opt = {
+                margin:       0.5,
+                filename:     `Laporan_Riwayat_Extruder_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                titleEl.classList.add('d-none');
+            });
         }
 
         function renderHistoryTable() {
@@ -1220,8 +1198,23 @@
                 return true;
             });
 
+            // Hitung total material & reject untuk shift tersebut
             let processedRows = [];
             filteredHistory.forEach(report => {
+                let shiftTotalMat = 0;
+                let shiftTotalRej = 0;
+
+                (report.items || []).forEach(item => {
+                    const comp = parseFloat(item.compound) || 0;
+                    const met = parseFloat(item.metalInsert) || 0;
+                    shiftTotalMat += (comp + met);
+                    (item.problems || []).forEach(p => {
+                        shiftTotalRej += parseFloat(p.rejectionKg) || 0;
+                    });
+                });
+
+                const shiftPercent = shiftTotalMat > 0 ? ((shiftTotalRej / shiftTotalMat) * 100).toFixed(2) : '0.00';
+
                 (report.items || []).forEach(item => {
                     if (filterItem && item.namaItem !== filterItem) return;
                     const comp = parseFloat(item.compound) || 0;
@@ -1230,7 +1223,7 @@
 
                     (item.problems || []).forEach(prob => {
                         if (filterProblemDesc && prob.problemDesc !== filterProblemDesc) return;
-                        processedRows.push({ report, item, prob, totMat });
+                        processedRows.push({ report, item, prob, totMat, shiftTotalRej, shiftPercent });
                     });
                 });
             });
@@ -1254,7 +1247,6 @@
                 const comp = parseFloat(item.compound) || 0;
                 const met = parseFloat(item.metalInsert) || 0;
 
-                // Format Rincian Multi Compound & Metal
                 let compDetailText = `Comp: ${comp} Kg`;
                 if(item.compoundList && item.compoundList.length > 0) {
                     compDetailText = item.compoundList.map(c => `${c.name}: ${c.weight}Kg`).join('<br>');
@@ -1276,14 +1268,15 @@
                 htmlDesktop += `
                     <tr>
                         <td class="no-print">
+                            <button class="btn btn-sm btn-success py-0 px-2 mb-1 fw-bold" onclick="sendReportToWhatsApp('${report.reportId}')" title="Kirim ke WA Group/Personal"><i class="fa-brands fa-whatsapp"></i> WA</button><br>
                             <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus Laporan Shift Ini"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
                         </td>
                         <td><small class="fw-bold text-dark">${report.header.tanggal}</small><br><span class="badge bg-secondary">${report.header.shift}</span><br><strong class="text-primary">${report.header.namaMesin}</strong><br><small class="text-dark fw-bold"><i class="fa-solid fa-user me-1"></i>${picName}</small></td>
                         <td><strong class="text-dark">${item.namaItem}</strong></td>
                         <td><small class="text-dark fw-semibold">${compDetailText}<br>${metalDetailText}<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
                         <td><span class="badge bg-warning text-dark mb-1 fw-bold">${prob.faktor}</span><br><strong class="text-dark">${prob.problemDesc}</strong></td>
-                        <td><span class="text-danger fw-extrabold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span></td>
+                        <td><span class="text-danger fw-extrabold">${prob.rejectionKg} Kg</span><br><span class="badge bg-dark text-white">Shift Total Rej: ${row.shiftTotalRej.toFixed(1)} Kg (${row.shiftPercent}%)</span></td>
                         <td><small class="text-dark"><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}<br><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</small></td>
                         <td><small class="text-dark">${(prob.tindakanList || []).join('; ')}</small></td>
                         <td><div class="d-flex flex-wrap">${probImgHtml || '<span class="text-dark small fw-bold">No Prob</span>'}</div><div class="d-flex flex-wrap mt-1">${impImgHtml || '<span class="text-dark small fw-bold">No Imp</span>'}</div></td>
@@ -1310,8 +1303,9 @@
                                 <strong class="fw-semibold">Comp: ${comp} | Metal: ${met}</strong> (Tot: ${totMat.toFixed(1)} Kg)
                             </div>
                             <div class="col-6 text-end">
-                                <span class="text-dark fw-bold d-block">Rejection:</span>
-                                <strong class="text-danger fw-bold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</strong>
+                                <span class="text-dark fw-bold d-block">Rejection Shift:</span>
+                                <strong class="text-danger fw-bold">${prob.rejectionKg} Kg</strong><br>
+                                <span class="badge bg-dark text-white mt-1">Total Shift: ${row.shiftPercent}%</span>
                             </div>
                         </div>
 
@@ -1319,8 +1313,6 @@
                             <span class="badge bg-warning text-dark mb-1 fw-bold">${prob.faktor}</span>
                             <strong class="text-dark fw-bold d-block mb-1">Problem: ${prob.problemDesc}</strong>
                             <div><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}</div>
-                            <div><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</div>
-                            <div class="mt-1 text-success fw-bold"><strong>Tindakan:</strong> ${(prob.tindakanList || []).join('; ')}</div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1 border-top">
@@ -1328,8 +1320,9 @@
                                 ${probImgHtml} ${impImgHtml}
                             </div>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
-                                <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
+                                <button class="btn btn-sm btn-success py-1 px-2 fw-bold" onclick="sendReportToWhatsApp('${report.reportId}')"><i class="fa-brands fa-whatsapp me-1"></i> Kirim WA</button>
+                                <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')">Revisi</button>
+                                <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')">Hapus</button>
                             </div>
                         </div>
                     </div>
@@ -1412,22 +1405,10 @@
                         label: 'Rejection (Kg)',
                         data: Object.values(factorData), 
                         backgroundColor: ['#0284c7', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6'],
-                        borderRadius: 8,
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderRadius: 8
                     }] 
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
-                        x: { grid: { display: false } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
@@ -1443,44 +1424,9 @@
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Rejection (Kg)',
-                        data: dataVals,
-                        backgroundColor: '#ef4444',
-                        borderRadius: 8,
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
+                    datasets: [{ label: 'Rejection (Kg)', data: dataVals, backgroundColor: '#ef4444', borderRadius: 8 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const valKg = context.raw || 0;
-                                    const pct = totalMaterial > 0 ? ((valKg / totalMaterial) * 100).toFixed(2) : '0.00';
-                                    return ` Rejection: ${valKg} Kg (${pct}%)`;
-                                }
-                            }
-                        }
-                    },
-                    scales: { 
-                        y: { 
-                            beginAtZero: true,
-                            grid: { color: '#e2e8f0' },
-                            ticks: {
-                                callback: function(value) {
-                                    const pct = totalMaterial > 0 ? ((value / totalMaterial) * 100).toFixed(1) : '0';
-                                    return value + ' Kg (' + pct + '%)';
-                                }
-                            }
-                        },
-                        x: { grid: { display: false } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
@@ -1513,7 +1459,7 @@
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER`;
             document.getElementById('formModeBadge').className = "badge bg-primary px-3 py-2 rounded-pill fw-bold";
             document.getElementById('formModeBadge').innerText = "Input Baru";
-            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive`;
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets & Drive & WA`;
             document.getElementById('cancelEditBtn').classList.add('d-none');
 
             document.getElementById('productionForm').reset();
@@ -1579,23 +1525,11 @@
             if (deleteTargetAction === 'all') {
                 localStorage.removeItem('extruder_reports_v7');
                 renderHistoryTable();
-                if (GOOGLE_SCRIPT_URL) {
-                    try {
-                        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "clear_sheet" }) });
-                        alert("Seluruh riwayat berhasil dikosongkan!");
-                    } catch(err) { alert("Riwayat lokal terhapus."); }
-                }
             } else {
                 let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
                 history = history.filter(r => r.reportId !== deleteTargetAction);
                 localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
                 renderHistoryTable();
-                if (GOOGLE_SCRIPT_URL) {
-                    try {
-                        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "delete_report", reportId: deleteTargetAction }) });
-                        alert("Laporan shift berhasil dihapus!");
-                    } catch(err) { alert("Laporan terhapus dari lokal."); }
-                }
             }
         }
 
@@ -1603,18 +1537,15 @@
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
-            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Rincian Compound,Rincian Metal,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
+            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Analisa,FollowUp,Tindakan\n";
             history.forEach(report => {
                 (report.items || []).forEach(item => {
                     const comp = parseFloat(item.compound) || 0;
                     const met = parseFloat(item.metalInsert) || 0;
                     const tot = comp + met;
-                    
-                    const compStr = (item.compoundList || []).map(c => `${c.name}:${c.weight}Kg`).join(';');
-                    const metalStr = (item.metalList || []).map(m => `${m.name}:${m.weight}Kg`).join(';');
 
                     (item.problems || []).forEach(p => {
-                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${compStr||comp}","${metalStr||met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${(p.rejectionKg/tot)*100 <= 6 ? 'OK' : 'NG'}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
+                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
                     });
                 });
             });
