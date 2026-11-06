@@ -15,7 +15,7 @@
             --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
             --card-bg: #ffffff;
             --border-color: #cbd5e1;
-            --text-main: #0f172a; /* Dipertegas menjadi gelap pekat */
+            --text-main: #0f172a;
         }
 
         body {
@@ -96,6 +96,14 @@
             border: 2px dashed #818cf8;
             border-radius: 0.85rem;
             padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .sub-material-box {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 1rem;
             margin-bottom: 1rem;
         }
 
@@ -295,7 +303,6 @@
                         </div>
                     </div>
 
-                    <!-- KARTU STATISTIK (Tanpa Label LINE 1-4 dan teks tegas) -->
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4 border-info">
@@ -326,7 +333,6 @@
                         </div>
                     </div>
 
-                    <!-- GRAFIK CHART.JS (Gaya Kolom 3D / Bar Vertikal Dinamis) -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
@@ -342,7 +348,6 @@
                         </div>
                     </div>
 
-                    <!-- FILTER & SORT LANJUTAN -->
                     <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded border">
                         <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-dark">Dari Tanggal</label>
@@ -380,7 +385,6 @@
                         </div>
                     </div>
 
-                    <!-- DESKTOP TABLE -->
                     <div class="table-responsive desktop-table-view">
                         <table class="table table-custom table-hover align-middle border">
                             <thead>
@@ -400,7 +404,6 @@
                         </table>
                     </div>
 
-                    <!-- MOBILE CARD VIEW -->
                     <div class="mobile-card-view" id="historyCardBodyMobile"></div>
 
                 </div>
@@ -452,12 +455,16 @@
 
         let dynamicMasterItems = [];
         let dynamicCategories = [];
+        let dynamicMasterCompounds = [];
+        let dynamicMasterMetals = [];
+
         let itemIndex = 0;
         let deleteTargetAction = null;
         let factorChartInstance = null;
         let topProblemChartInstance = null;
 
         document.addEventListener("DOMContentLoaded", async () => {
+            loadLocalMaterialMasters();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
             updateHari();
@@ -467,6 +474,16 @@
             renderHistoryTable();
         });
 
+        function loadLocalMaterialMasters() {
+            dynamicMasterCompounds = JSON.parse(localStorage.getItem('extruder_master_compounds') || '[]');
+            dynamicMasterMetals = JSON.parse(localStorage.getItem('extruder_master_metals') || '[]');
+        }
+
+        function saveLocalMaterialMasters() {
+            localStorage.setItem('extruder_master_compounds', JSON.stringify([...new Set(dynamicMasterCompounds)]));
+            localStorage.setItem('extruder_master_metals', JSON.stringify([...new Set(dynamicMasterMetals)]));
+        }
+
         async function fetchMasterDataFromSheet() {
             if(!GOOGLE_SCRIPT_URL) return;
             try {
@@ -475,9 +492,20 @@
                 if(result.status === "success") {
                     dynamicMasterItems = result.items || [];
                     dynamicCategories = result.categories || [];
+                    
+                    if(result.compounds) {
+                        dynamicMasterCompounds = [...new Set([...dynamicMasterCompounds, ...result.compounds])];
+                    }
+                    if(result.metals) {
+                        dynamicMasterMetals = [...new Set([...dynamicMasterMetals, ...result.metals])];
+                    }
+                    saveLocalMaterialMasters();
+
                     document.querySelectorAll('.item-block-card').forEach(block => {
                         refreshItemDropdown(block);
                         block.querySelectorAll('.problem-item-card').forEach(pCard => refreshCategoryDropdown(pCard));
+                        block.querySelectorAll('.sub-compound-row').forEach(cRow => refreshCompoundDropdown(cRow));
+                        block.querySelectorAll('.sub-metal-row').forEach(mRow => refreshMetalDropdown(mRow));
                     });
                     populateFilterDropdowns();
                 }
@@ -531,6 +559,28 @@
             select.innerHTML = options;
         }
 
+        function refreshCompoundDropdown(cRow) {
+            const select = cRow.querySelector('.comp-name-dropdown');
+            const currentValue = select.value;
+            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Compound...</option>`;
+            dynamicMasterCompounds.forEach(comp => {
+                options += `<option value="${comp}" ${currentValue === comp ? 'selected' : ''}>${comp}</option>`;
+            });
+            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Compound Baru (Manual)...</option>`;
+            select.innerHTML = options;
+        }
+
+        function refreshMetalDropdown(mRow) {
+            const select = mRow.querySelector('.metal-name-dropdown');
+            const currentValue = select.value;
+            let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Metal Insert...</option>`;
+            dynamicMasterMetals.forEach(met => {
+                options += `<option value="${met}" ${currentValue === met ? 'selected' : ''}>${met}</option>`;
+            });
+            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Metal Insert Baru (Manual)...</option>`;
+            select.innerHTML = options;
+        }
+
         function updateHari() {
             const dateVal = document.getElementById('tanggal').value;
             if(!dateVal) return;
@@ -564,27 +614,55 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark">Nama / Kode Item</label>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">Nama / Kode Item Produk</label>
                             <select class="form-select item-dropdown mb-2" onchange="handleItemDropdownChange('${itemBlockId}')" required>
                                 ${dropdownOptions}
                             </select>
                             <input type="text" class="form-control item-nama-custom mt-1" placeholder="Ketik nama item baru..." value="${customInputValue}" style="display: ${customInputDisplay};" ${isExistingCustom ? 'required' : ''}>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark">Pemakaian Compound (Kg)</label>
-                            <input type="number" step="0.1" min="0" class="form-control item-compound" placeholder="0" value="${existingData ? existingData.compound : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark">Pemakaian Metal Insert (Kg)</label>
-                            <input type="number" step="0.1" min="0" class="form-control item-metal" placeholder="0" value="${existingData ? existingData.metalInsert : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark">Total Material (Kg)</label>
-                            <input type="text" class="form-control bg-light fw-bold item-total-material" readonly value="${existingData ? (parseFloat(existingData.compound||0) + parseFloat(existingData.metalInsert||0)) + ' Kg' : '0 Kg'}">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-dark">Ringkasan Total Material Terhitung (Rumus Otomatis)</label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <input type="text" class="form-control bg-light fw-bold text-primary total-compound-summary" readonly value="0.0 Kg" title="Total Compound">
+                                    <span class="micro-label text-muted d-block mt-1">Tot Compound</span>
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" class="form-control bg-light fw-bold text-info total-metal-summary" readonly value="0.0 Kg" title="Total Metal Insert">
+                                    <span class="micro-label text-muted d-block mt-1">Tot Metal</span>
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" class="form-control bg-light fw-bold text-dark item-total-material" readonly value="0.0 Kg" title="Total Material">
+                                    <span class="micro-label text-muted d-block mt-1">Total Material</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- SUB SECTION MULTI COMPOUND -->
+                    <div class="sub-material-box mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-dark small"><i class="fa-solid fa-flask text-primary me-1"></i> Rincian Pemakaian Compound (Bisa Multi-Jenis)</span>
+                            <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-1 px-2" onclick="addCompoundRow('${itemBlockId}')">
+                                <i class="fa-solid fa-plus me-1"></i> Tambah Baris Compound
+                            </button>
+                        </div>
+                        <div class="compounds-container d-flex flex-column gap-2" id="compounds-container-${itemBlockId}"></div>
+                    </div>
+
+                    <!-- SUB SECTION MULTI METAL INSERT -->
+                    <div class="sub-material-box mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-dark small"><i class="fa-solid fa-layer-group text-info me-1"></i> Rincian Pemakaian Metal Insert (Bisa Multi-Jenis)</span>
+                            <button type="button" class="btn btn-xs btn-outline-info fw-bold py-1 px-2" onclick="addMetalRow('${itemBlockId}')">
+                                <i class="fa-solid fa-plus me-1"></i> Tambah Baris Metal Insert
+                            </button>
+                        </div>
+                        <div class="metals-container d-flex flex-column gap-2" id="metals-container-${itemBlockId}"></div>
+                    </div>
+
+                    <!-- DETAIL PROBLEM & TINDAKAN -->
                     <div class="bg-light p-3 rounded border mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Detail Problem, Analisa, & Tindakan Item Ini</span>
@@ -598,6 +676,25 @@
             `;
             container.insertAdjacentHTML('beforeend', html);
 
+            // Populate Compound List
+            if(existingData && existingData.compoundList && existingData.compoundList.length > 0) {
+                existingData.compoundList.forEach(c => addCompoundRow(itemBlockId, c));
+            } else if(existingData && existingData.compound) {
+                addCompoundRow(itemBlockId, { name: "Compound Utama", weight: existingData.compound });
+            } else {
+                addCompoundRow(itemBlockId);
+            }
+
+            // Populate Metal Insert List
+            if(existingData && existingData.metalList && existingData.metalList.length > 0) {
+                existingData.metalList.forEach(m => addMetalRow(itemBlockId, m));
+            } else if(existingData && existingData.metalInsert && parseFloat(existingData.metalInsert) > 0) {
+                addMetalRow(itemBlockId, { name: "Metal Insert Utama", weight: existingData.metalInsert });
+            } else {
+                addMetalRow(itemBlockId);
+            }
+
+            // Populate Problems List
             if(existingData && existingData.problems) {
                 existingData.problems.forEach(pData => addProblemToItem(itemBlockId, pData));
             } else {
@@ -623,6 +720,123 @@
 
         function removeItemBlock(itemBlockId) {
             document.getElementById(itemBlockId)?.remove();
+        }
+
+        /* --- LOGIKA BARIS MULTI COMPOUND --- */
+        function addCompoundRow(itemBlockId, existingComp = null) {
+            const container = document.getElementById(`compounds-container-${itemBlockId}`);
+            const rowCount = container.children.length + 1;
+            const cRowId = `${itemBlockId}-comp-${rowCount}`;
+
+            const isCustom = existingComp && !dynamicMasterCompounds.includes(existingComp.name);
+            const customDisplay = isCustom ? "block" : "none";
+            const customVal = isCustom ? existingComp.name : "";
+
+            let compOptions = `<option value="" disabled ${!existingComp ? 'selected' : ''}>Pilih Jenis Compound...</option>`;
+            dynamicMasterCompounds.forEach(c => {
+                const selected = (existingComp && existingComp.name === c) ? 'selected' : '';
+                compOptions += `<option value="${c}" ${selected}>${c}</option>`;
+            });
+            compOptions += `<option value="CUSTOM_INPUT" ${isCustom ? 'selected' : ''}>✏️ Ketik Compound Baru (Manual)...</option>`;
+
+            const html = `
+                <div class="row g-2 align-items-center sub-compound-row" id="${cRowId}">
+                    <div class="col-md-6">
+                        <select class="form-select form-select-sm comp-name-dropdown" onchange="handleCompoundDropdownChange('${cRowId}')" required>
+                            ${compOptions}
+                        </select>
+                        <input type="text" class="form-control form-control-sm comp-name-custom mt-1" placeholder="Ketik nama compound baru..." value="${customVal}" style="display: ${customDisplay};" ${isCustom ? 'required' : ''}>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.1" min="0" class="form-control comp-weight-input fw-semibold" placeholder="0" value="${existingComp ? existingComp.weight : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
+                            <span class="input-group-text">Kg</span>
+                        </div>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        ${rowCount > 1 ? `<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSubRow('${cRowId}', '${itemBlockId}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            calculateItemTotals(itemBlockId);
+        }
+
+        function handleCompoundDropdownChange(cRowId) {
+            const row = document.getElementById(cRowId);
+            const dropdown = row.querySelector('.comp-name-dropdown');
+            const customInput = row.querySelector('.comp-name-custom');
+            if (dropdown.value === "CUSTOM_INPUT") {
+                customInput.style.display = "block";
+                customInput.value = "";
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customInput.style.display = "none";
+                customInput.value = dropdown.value;
+                customInput.required = false;
+            }
+        }
+
+        /* --- LOGIKA BARIS MULTI METAL INSERT --- */
+        function addMetalRow(itemBlockId, existingMetal = null) {
+            const container = document.getElementById(`metals-container-${itemBlockId}`);
+            const rowCount = container.children.length + 1;
+            const mRowId = `${itemBlockId}-metal-${rowCount}`;
+
+            const isCustom = existingMetal && !dynamicMasterMetals.includes(existingMetal.name);
+            const customDisplay = isCustom ? "block" : "none";
+            const customVal = isCustom ? existingMetal.name : "";
+
+            let metalOptions = `<option value="" disabled ${!existingMetal ? 'selected' : ''}>Pilih Jenis Metal Insert...</option>`;
+            dynamicMasterMetals.forEach(m => {
+                const selected = (existingMetal && existingMetal.name === m) ? 'selected' : '';
+                metalOptions += `<option value="${m}" ${selected}>${m}</option>`;
+            });
+            metalOptions += `<option value="CUSTOM_INPUT" ${isCustom ? 'selected' : ''}>✏️ Ketik Metal Insert Baru (Manual)...</option>`;
+
+            const html = `
+                <div class="row g-2 align-items-center sub-metal-row" id="${mRowId}">
+                    <div class="col-md-6">
+                        <select class="form-select form-select-sm metal-name-dropdown" onchange="handleMetalDropdownChange('${mRowId}')">
+                            ${metalOptions}
+                        </select>
+                        <input type="text" class="form-control form-control-sm metal-name-custom mt-1" placeholder="Ketik metal insert baru..." value="${customVal}" style="display: ${customDisplay};">
+                    </div>
+                    <div class="col-md-5">
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.1" min="0" class="form-control metal-weight-input fw-semibold" placeholder="0" value="${existingMetal ? existingMetal.weight : ''}" oninput="calculateItemTotals('${itemBlockId}')">
+                            <span class="input-group-text">Kg</span>
+                        </div>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSubRow('${mRowId}', '${itemBlockId}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            calculateItemTotals(itemBlockId);
+        }
+
+        function handleMetalDropdownChange(mRowId) {
+            const row = document.getElementById(mRowId);
+            const dropdown = row.querySelector('.metal-name-dropdown');
+            const customInput = row.querySelector('.metal-name-custom');
+            if (dropdown.value === "CUSTOM_INPUT") {
+                customInput.style.display = "block";
+                customInput.value = "";
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customInput.style.display = "none";
+                customInput.value = dropdown.value;
+                customInput.required = false;
+            }
+        }
+
+        function removeSubRow(rowId, itemBlockId) {
+            document.getElementById(rowId)?.remove();
+            calculateItemTotals(itemBlockId);
         }
 
         function addProblemToItem(itemBlockId, existingProb = null) {
@@ -811,16 +1025,32 @@
             }
         }
 
+        /* --- PENJUMLAHAN RUMUS OTOMATIS (REALTIME) --- */
         function calculateItemTotals(itemBlockId) {
             const block = document.getElementById(itemBlockId);
-            const compound = parseFloat(block.querySelector('.item-compound').value) || 0;
-            const metal = parseFloat(block.querySelector('.item-metal').value) || 0;
-            const totalMaterial = compound + metal;
-            block.querySelector('.item-total-material').value = totalMaterial.toFixed(1) + " Kg";
+            if(!block) return;
+
+            let totalCompoundSum = 0;
+            block.querySelectorAll('.sub-compound-row').forEach(row => {
+                const wInput = row.querySelector('.comp-weight-input');
+                if(wInput) totalCompoundSum += parseFloat(wInput.value) || 0;
+            });
+
+            let totalMetalSum = 0;
+            block.querySelectorAll('.sub-metal-row').forEach(row => {
+                const wInput = row.querySelector('.metal-weight-input');
+                if(wInput) totalMetalSum += parseFloat(wInput.value) || 0;
+            });
+
+            const totalMaterialSum = totalCompoundSum + totalMetalSum;
+
+            block.querySelector('.total-compound-summary').value = totalCompoundSum.toFixed(1) + " Kg";
+            block.querySelector('.total-metal-summary').value = totalMetalSum.toFixed(1) + " Kg";
+            block.querySelector('.item-total-material').value = totalMaterialSum.toFixed(1) + " Kg";
 
             block.querySelectorAll('.problem-item-card').forEach(card => {
                 const rejectKg = parseFloat(card.querySelector('.prob-reject-kg').value) || 0;
-                let percent = totalMaterial > 0 ? (rejectKg / totalMaterial) * 100 : 0;
+                let percent = totalMaterialSum > 0 ? (rejectKg / totalMaterialSum) * 100 : 0;
                 card.querySelector('.prob-reject-percent').value = percent.toFixed(2) + "%";
             });
         }
@@ -866,8 +1096,45 @@
                 const customInput = block.querySelector('.item-nama-custom');
                 let namaItem = dropdown.value === "CUSTOM_INPUT" ? customInput.value : dropdown.value;
 
-                const compound = block.querySelector('.item-compound').value;
-                const metalInsert = block.querySelector('.item-metal').value;
+                // Collect Compound List & Auto Save Master
+                const compoundList = [];
+                let totalCompoundKg = 0;
+                block.querySelectorAll('.sub-compound-row').forEach(cRow => {
+                    const cDropdown = cRow.querySelector('.comp-name-dropdown');
+                    const cCustom = cRow.querySelector('.comp-name-custom');
+                    const wVal = parseFloat(cRow.querySelector('.comp-weight-input').value) || 0;
+                    
+                    let cName = cDropdown.value === "CUSTOM_INPUT" ? cCustom.value.trim() : cDropdown.value;
+                    if(cName && wVal > 0) {
+                        compoundList.push({ name: cName, weight: wVal });
+                        totalCompoundKg += wVal;
+
+                        if(cDropdown.value === "CUSTOM_INPUT" && !dynamicMasterCompounds.includes(cName)) {
+                            dynamicMasterCompounds.push(cName);
+                        }
+                    }
+                });
+
+                // Collect Metal Insert List & Auto Save Master
+                const metalList = [];
+                let totalMetalKg = 0;
+                block.querySelectorAll('.sub-metal-row').forEach(mRow => {
+                    const mDropdown = mRow.querySelector('.metal-name-dropdown');
+                    const mCustom = mRow.querySelector('.metal-name-custom');
+                    const wVal = parseFloat(mRow.querySelector('.metal-weight-input').value) || 0;
+                    
+                    let mName = mDropdown.value === "CUSTOM_INPUT" ? mCustom.value.trim() : mDropdown.value;
+                    if(mName && wVal > 0) {
+                        metalList.push({ name: mName, weight: wVal });
+                        totalMetalKg += wVal;
+
+                        if(mDropdown.value === "CUSTOM_INPUT" && !dynamicMasterMetals.includes(mName)) {
+                            dynamicMasterMetals.push(mName);
+                        }
+                    }
+                });
+
+                saveLocalMaterialMasters();
 
                 const probCards = block.querySelectorAll('.problem-item-card');
                 const problemsArray = [];
@@ -895,7 +1162,14 @@
                     });
                 }
 
-                itemsArray.push({ namaItem, compound, metalInsert, problems: problemsArray });
+                itemsArray.push({ 
+                    namaItem, 
+                    compound: totalCompoundKg, 
+                    metalInsert: totalMetalKg, 
+                    compoundList, 
+                    metalList, 
+                    problems: problemsArray 
+                });
             }
 
             const payload = { reportId, isEdit, header: headerData, items: itemsArray };
@@ -980,6 +1254,17 @@
                 const comp = parseFloat(item.compound) || 0;
                 const met = parseFloat(item.metalInsert) || 0;
 
+                // Format Rincian Multi Compound & Metal
+                let compDetailText = `Comp: ${comp} Kg`;
+                if(item.compoundList && item.compoundList.length > 0) {
+                    compDetailText = item.compoundList.map(c => `${c.name}: ${c.weight}Kg`).join('<br>');
+                }
+
+                let metalDetailText = `Metal: ${met} Kg`;
+                if(item.metalList && item.metalList.length > 0) {
+                    metalDetailText = item.metalList.map(m => `${m.name}: ${m.weight}Kg`).join('<br>');
+                }
+
                 let probImgHtml = '';
                 (prob.fotoProblemList || []).forEach(url => { if(url) probImgHtml += `<img src="${url}" class="table-img-thumb shadow-sm" onclick="showModalImage('${url}')">`; });
                 
@@ -996,7 +1281,7 @@
                         </td>
                         <td><small class="fw-bold text-dark">${report.header.tanggal}</small><br><span class="badge bg-secondary">${report.header.shift}</span><br><strong class="text-primary">${report.header.namaMesin}</strong><br><small class="text-dark fw-bold"><i class="fa-solid fa-user me-1"></i>${picName}</small></td>
                         <td><strong class="text-dark">${item.namaItem}</strong></td>
-                        <td><small class="text-dark fw-semibold">Comp: ${comp} Kg<br>Metal: ${met} Kg<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
+                        <td><small class="text-dark fw-semibold">${compDetailText}<br>${metalDetailText}<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
                         <td><span class="badge bg-warning text-dark mb-1 fw-bold">${prob.faktor}</span><br><strong class="text-dark">${prob.problemDesc}</strong></td>
                         <td><span class="text-danger fw-extrabold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span></td>
                         <td><small class="text-dark"><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}<br><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</small></td>
@@ -1120,7 +1405,7 @@
             if(factorChartInstance) factorChartInstance.destroy();
             
             factorChartInstance = new Chart(ctx, {
-                type: 'bar', // Grafik Kolom Vertikal bergaya 3D / Modern
+                type: 'bar',
                 data: { 
                     labels: Object.keys(factorData), 
                     datasets: [{ 
@@ -1155,7 +1440,7 @@
             if(topProblemChartInstance) topProblemChartInstance.destroy();
             
             topProblemChartInstance = new Chart(ctx, {
-                type: 'bar', // Grafik Kolom Vertikal (3D Look)
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -1318,14 +1603,18 @@
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
-            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Compound,Metal,Total,Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
+            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Rincian Compound,Rincian Metal,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
             history.forEach(report => {
                 (report.items || []).forEach(item => {
                     const comp = parseFloat(item.compound) || 0;
                     const met = parseFloat(item.metalInsert) || 0;
                     const tot = comp + met;
+                    
+                    const compStr = (item.compoundList || []).map(c => `${c.name}:${c.weight}Kg`).join(';');
+                    const metalStr = (item.metalList || []).map(m => `${m.name}:${m.weight}Kg`).join(';');
+
                     (item.problems || []).forEach(p => {
-                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${comp}","${met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${(p.rejectionKg/tot)*100 <= 6 ? 'OK' : 'NG'}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
+                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${compStr||comp}","${metalStr||met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${(p.rejectionKg/tot)*100 <= 6 ? 'OK' : 'NG'}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
                     });
                 });
             });
