@@ -412,7 +412,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwgOLkuV1Dv9TfWQ7bgNAZaqceHhBGgTMVc-KaSLxC9PUCvHYKspj9SpaU1Dt0V464Gw/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWOM7c63f1F3GPeUXGC9nMMO6y1hIHY7-OBXLUNI1mJTQ-XvegMcxVZg7rNn-6PR8aow/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
         const USER_ACCOUNTS = [
@@ -1750,9 +1750,30 @@
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
             let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Rincian Compound,Rincian Metal,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
-            history.setItem(report => {
-                // (diproses sesuai data)
+            history.forEach(report => {
+                (report.items || []).forEach(item => {
+                    const comp = parseFloat(item.compound) || 0;
+                    const met = parseFloat(item.metalInsert) || 0;
+                    const tot = comp + met;
+                    
+                    const compStr = (item.compoundList || []).map(c => `${c.name}:${c.weight}Kg`).join(';');
+                    const metalStr = (item.metalList || []).map(m => `${m.name}:${m.weight}Kg`).join(';');
+
+                    (item.problems || []).forEach(p => {
+                        const statusKpi = (parseFloat(p.rejectionKg) / tot) * 100 <= 6 ? 'OK' : 'NG';
+                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${compStr||comp}","${metalStr||met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${statusKpi}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
+                    });
+                });
             });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.setAttribute('download', 'Laporan_Extruder_' + new Date().toISOString().split('T')[0] + '.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>
