@@ -61,9 +61,6 @@
             transition: all 0.3s ease;
             animation: fadeInUp 0.6s ease-out forwards;
         }
-        .glass-card:hover {
-            box-shadow: 0 20px 40px -5px rgba(79, 70, 229, 0.15);
-        }
 
         .container-fluid-custom { max-width: 98%; margin: 0 auto; }
 
@@ -74,10 +71,8 @@
             font-weight: 600;
             border-radius: 0.75rem;
             padding: 0.7rem 1rem;
-            transition: all 0.2s ease;
         }
         .form-control:focus, .form-select:focus {
-            background-color: #ffffff;
             border-color: #4f46e5;
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
         }
@@ -88,7 +83,6 @@
             border-radius: 1rem;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.05);
         }
 
         .problem-item-card {
@@ -115,104 +109,72 @@
             border-radius: 0.75rem;
             padding: 0.85rem 1.5rem;
             box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-primary-custom:hover {
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.6);
-            color: #ffffff;
-        }
+        .btn-primary-custom:hover { color: #ffffff; transform: translateY(-2px); }
 
-        .multi-photo-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 5px;
-        }
-
+        .multi-photo-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
         .img-preview-box {
-            width: 95px;
-            height: 95px;
-            border: 2px dashed #6366f1;
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #eef2ff;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s ease;
-        }
-        .img-preview-box:hover {
-            background: #e0e7ff;
-            border-color: #4f46e5;
-            transform: scale(1.03);
+            width: 95px; height: 95px; border: 2px dashed #6366f1; border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; background: #eef2ff; cursor: pointer; position: relative;
         }
         .img-preview-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .table-responsive {
-            max-height: 650px;
-            overflow-y: auto;
-            border-radius: 0.75rem;
-        }
-        .table-custom th { 
-            background: linear-gradient(135deg, #312e81 0%, #3730a3 100%) !important; 
-            color: #ffffff !important; 
-            font-weight: 700; 
-            white-space: nowrap; 
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .table-custom tbody tr {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-        .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; transition: transform 0.2s; }
-        .table-img-thumb:hover { transform: scale(1.1); }
+        .table-responsive { max-height: 650px; overflow-y: auto; border-radius: 0.75rem; }
+        .table-custom th { background: linear-gradient(135deg, #312e81 0%, #3730a3 100%) !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; }
+        .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
-        @media (max-width: 768px) {
-            .desktop-table-view { display: none !important; }
-            .mobile-card-view { display: block !important; }
-        }
-        @media (min-width: 769px) {
-            .desktop-table-view { display: block !important; }
-            .mobile-card-view { display: none !important; }
-        }
-
-        .history-mobile-card {
-            background: #ffffff;
-            border: 1px solid #818cf8;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 6px 15px -3px rgba(79, 70, 229, 0.1);
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-
-        @media print {
-            body { background: white !important; padding: 0 !important; }
-            .navbar, .btn, .no-print { display: none !important; }
-            .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
-            .desktop-table-view { display: block !important; }
-            .mobile-card-view { display: none !important; }
-        }
+        .history-mobile-card { background: #ffffff; border: 1px solid #818cf8; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
 
+    <!-- NAVBAR DENGAN INDIKATOR SESI & TOMBOL LOGOUT -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top mb-4">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
                 <i class="fa-solid fa-industry text-primary"></i>
                 <span>LAPORAN PROBLEM EXTRUDER</span>
             </a>
-            <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm fw-bold" onclick="switchTab('form')"><i class="fa-solid fa-pen-to-square me-1"></i> Form</button>
-                <button class="btn btn-outline-secondary btn-sm fw-bold" onclick="switchTab('history')"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</button>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-none d-md-flex align-items-center">
+                    <span id="navSessionBadge" class="badge bg-danger px-3 py-2 fw-bold fs-6">🔴 BELUM LOGIN / KOSONG</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm fw-bold" onclick="switchTab('form')" id="navTabForm"><i class="fa-solid fa-pen-to-square me-1"></i> Form</button>
+                    <button class="btn btn-outline-secondary btn-sm fw-bold" onclick="switchTab('history')" id="navTabHistory"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</button>
+                    <button class="btn btn-danger btn-sm fw-bold" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- MODAL LOGIN DI AWAL (GERBANG MASUK UTAMA) -->
+    <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white rounded-top-4 py-3">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-lock me-2"></i>Login Sistem Produksi Extruder</h5>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="loginAlertBox" class="alert alert-danger d-none py-2 small fw-bold" role="alert"></div>
+                    <form id="loginForm" onsubmit="executeLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Username</label>
+                            <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Password</label>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password...">
+                            <div class="form-text small text-muted">Akun Viewer dapat dikosongkan password-nya.</div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-custom py-2 fw-bold">Masuk ke Sistem</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container-fluid container-fluid-custom">
         <!-- TAB 1: FORM INPUT -->
@@ -294,12 +256,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
                         <div>
                             <h3 class="fw-bold mb-1 text-dark fs-4"><i class="fa-solid fa-chart-line text-primary me-2"></i>Dashboard & Riwayat Laporan Extruder</h3>
-                            <p class="text-dark fw-bold small mb-0">KPI PRODUCTION EXTRUDER AUTOSEAL</p>
+                            <p class="text-dark fw-bold small mb-0">KPI PRODUCTION EXTRUDER AUTOSEAL (Auto-Refresh Setiap 30 Detik)</p>
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
                             <button class="btn btn-outline-primary btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Cetak / PDF</button>
                             <button class="btn btn-outline-success btn-sm fw-bold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
-                            <button class="btn btn-outline-danger btn-sm fw-bold" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
+                            <button class="btn btn-outline-danger btn-sm fw-bold" id="btnDeleteAll" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
                         </div>
                     </div>
 
@@ -450,8 +412,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCqSIJbiqBey6pAIYHmVb3BXh8r82F1_xCc2Ui5s9MH5-phvzRzTmlU7X8x6z6cuXXMg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8B8NhZE4cDOLRoN0YhHJH_bcwEbfLFqEw69fLKZc48AM_vJFJR4EHw65K8jmVh7LPfQ/exec"; 
         const DELETE_PASSWORD = "hapus1234";
+
+        // DATABASE AKUN PENGGUNA
+        const USER_ACCOUNTS = [
+            { username: "Amir", pass: "amir123", pic: "Amir", role: "Full" },
+            { username: "Deden", pass: "deden456", pic: "Deden", role: "Full" },
+            { username: "Waidin", pass: "waidin789", pic: "Waidin", role: "Full" },
+            { username: "Hakim", pass: "hakim321", pic: "Hakim", role: "Full" },
+            { username: "Lestari", pass: "lestari123", pic: "Lestari", role: "Full" },
+            { username: "Dian", pass: "dian123", pic: "Dian", role: "Full" },
+            { username: "Operator", pass: "Operator123", pic: "", role: "Operator" },
+            { username: "Viewer", pass: "", pic: "Viewer", role: "Viewer" }
+        ];
+
+        let currentUser = null;
+        let loginModalInstance = null;
 
         let dynamicMasterItems = [];
         let dynamicCategories = [];
@@ -462,8 +439,12 @@
         let deleteTargetAction = null;
         let factorChartInstance = null;
         let topProblemChartInstance = null;
+        let autoRefreshInterval = null;
 
         document.addEventListener("DOMContentLoaded", async () => {
+            loginModalInstance = new bootstrap.Modal(document.getElementById('loginModal'));
+            checkActiveSession();
+
             loadLocalMaterialMasters();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
@@ -472,7 +453,125 @@
             await fetchMasterDataFromSheet();
             populateFilterDropdowns();
             renderHistoryTable();
+
+            // MENGHIDUPKAN AUTO-REFRESH DASHBOARD SETIAP 30 DETIK
+            startAutoRefresh();
         });
+
+        // SISTEM CEK & VALIDASI SESI LOGIN
+        function checkActiveSession() {
+            const savedUser = localStorage.getItem('extruder_logged_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                applyUserPermissions();
+            } else {
+                loginModalInstance.show();
+            }
+        }
+
+        function executeLogin(event) {
+            event.preventDefault();
+            const uInput = document.getElementById('loginUsername').value.trim();
+            const pInput = document.getElementById('loginPassword').value.trim();
+            const alertBox = document.getElementById('loginAlertBox');
+
+            const matched = USER_ACCOUNTS.find(acc => acc.username.toLowerCase() === uInput.toLowerCase());
+            if (!matched) {
+                alertBox.innerText = "Username tidak ditemukan!";
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            if (matched.pass !== "" && matched.pass !== pInput) {
+                alertBox.innerText = "Password salah!";
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            // CEK APAKAH AKUN SUDAH AKTIF DI PERANGKAT LAIN (SINGLE-SESSION CHECK)
+            let activeSessions = JSON.parse(localStorage.getItem('extruder_active_sessions') || '{}');
+            const deviceId = getDeviceId();
+
+            if (activeSessions[matched.username] && activeSessions[matched.username] !== deviceId) {
+                alertBox.innerHTML = `⚠️ <b>Akses Ditolak:</b> Akun <b>${matched.username}</b> sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.`;
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            // SIMPAN SESI BERHASIL
+            activeSessions[matched.username] = deviceId;
+            localStorage.setItem('extruder_active_sessions', JSON.stringify(activeSessions));
+            localStorage.setItem('extruder_device_id', deviceId);
+
+            currentUser = matched;
+            localStorage.setItem('extruder_logged_user', JSON.stringify(currentUser));
+
+            alertBox.classList.add('d-none');
+            loginModalInstance.hide();
+            applyUserPermissions();
+        }
+
+        function handleLogout() {
+            if (currentUser) {
+                let activeSessions = JSON.parse(localStorage.getItem('extruder_active_sessions') || '{}');
+                delete activeSessions[currentUser.username];
+                localStorage.setItem('extruder_active_sessions', JSON.stringify(activeSessions));
+            }
+            localStorage.removeItem('extruder_logged_user');
+            currentUser = null;
+            location.reload();
+        }
+
+        function getDeviceId() {
+            let id = localStorage.getItem('extruder_device_id');
+            if (!id) {
+                id = 'dev-' + Math.random().toString(36.substr(2, 9));
+                localStorage.setItem('extruder_device_id', id);
+            }
+            return id;
+        }
+
+        function applyUserPermissions() {
+            const badge = document.getElementById('navSessionBadge');
+            const picInput = document.getElementById('picName');
+            const btnDeleteAll = document.getElementById('btnDeleteAll');
+            const navTabForm = document.getElementById('navTabForm');
+
+            if (!currentUser) return;
+
+            if (currentUser.role === "Viewer") {
+                badge.className = "badge bg-info px-3 py-2 fw-bold fs-6 text-dark";
+                badge.innerHTML = `🔵 SESI AKTIF: Viewer`;
+                // VIEWER HANYA BISA LIHAT DASHBOARD
+                switchTab('history');
+                navTabForm.style.display = 'none';
+                if(btnDeleteAll) btnDeleteAll.style.display = 'none';
+            } else if (currentUser.role === "Operator") {
+                badge.className = "badge bg-success px-3 py-2 fw-bold fs-6";
+                badge.innerHTML = `🟢 SESI AKTIF: Operator`;
+                picInput.value = "";
+                picInput.readOnly = false;
+                picInput.placeholder = "Ketik nama operator...";
+            } else {
+                // FULL ACCESS (AMIR, DEDEN, WAIDIN, HAKIM, LESTARI, DIAN)
+                badge.className = "badge bg-success px-3 py-2 fw-bold fs-6";
+                badge.innerHTML = `🟢 SESI AKTIF: ${currentUser.pic}`;
+                picInput.value = currentUser.pic;
+                picInput.readOnly = true;
+            }
+        }
+
+        // AUTO-REFRESH DASHBOARD TIAP 30 DETIK
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(async () => {
+                const historySection = document.getElementById('section-history');
+                // Hanya refresh otomatis jika user sedang membuka tab dashboard/riwayat agar tidak mengganggu ketikan di form
+                if (historySection && !historySection.classList.contains('d-none')) {
+                    await fetchMasterDataFromSheet();
+                }
+            }, 30000); // 30000 ms = 30 detik
+        }
 
         function loadLocalMaterialMasters() {
             dynamicMasterCompounds = JSON.parse(localStorage.getItem('extruder_master_compounds') || '[]');
@@ -594,7 +693,6 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
-        // FUNGSI FORMAT TANGGAL: Mengubah tanggal menjadi "Jumat, 06-November-2026"
         function formatTanggalIndo(dateStr) {
             if (!dateStr) return '-';
             try {
@@ -604,7 +702,6 @@
                     const d = new Date(parts[0], parts[1] - 1, parts[2]);
                     const options = { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' };
                     let formatted = d.toLocaleDateString('id-ID', options);
-                    // Mengganti spasi menjadi tanda hubung agar sesuai dengan format yang diminta
                     return formatted.replace(/,\s*/, ', ').replace(/\s+/g, '-');
                 }
                 const d2 = new Date(dateStr);
@@ -618,24 +715,22 @@
             }
         }
 
-        // FUNGSI KONVERSI LINK GOOGLE DRIVE AGAR TAMPIL SEBAGAI GAMBAR
         function getDriveDirectEmbedUrl(url) {
-    if (!url) return '';
-    // Menggunakan format thumbnail Google Drive API agar langsung tampil tanpa terhalang izin view
-    if (url.includes('drive.google.com/file/d/')) {
-        const fileIdMatch = url.match(/\/d\/(.*?)\//);
-        if (fileIdMatch && fileIdMatch[1]) {
-            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w1000`;
+            if (!url) return '';
+            if (url.includes('drive.google.com/file/d/')) {
+                const fileIdMatch = url.match(/\/d\/(.*?)\//);
+                if (fileIdMatch && fileIdMatch[1]) {
+                    return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w1000`;
+                }
+            } else if (url.includes('id=')) {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                const fileId = urlParams.get('id');
+                if (fileId) {
+                    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                }
+            }
+            return url;
         }
-    } else if (url.includes('id=')) {
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        const fileId = urlParams.get('id');
-        if (fileId) {
-            return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-        }
-    }
-    return url;
-}
 
         function addItemBlock(existingData = null) {
             itemIndex++;
@@ -673,50 +768,41 @@
                             <label class="form-label small fw-bold text-dark">Ringkasan Total Material Terhitung (Rumus Otomatis)</label>
                             <div class="row g-2">
                                 <div class="col-4">
-                                    <input type="text" class="form-control bg-light fw-bold text-primary total-compound-summary" readonly value="0.0 Kg" title="Total Compound">
+                                    <input type="text" class="form-control bg-light fw-bold text-primary total-compound-summary" readonly value="0.0 Kg">
                                     <span class="micro-label text-muted d-block mt-1">Tot Compound</span>
                                 </div>
                                 <div class="col-4">
-                                    <input type="text" class="form-control bg-light fw-bold text-info total-metal-summary" readonly value="0.0 Kg" title="Total Metal Insert">
+                                    <input type="text" class="form-control bg-light fw-bold text-info total-metal-summary" readonly value="0.0 Kg">
                                     <span class="micro-label text-muted d-block mt-1">Tot Metal</span>
                                 </div>
                                 <div class="col-4">
-                                    <input type="text" class="form-control bg-light fw-bold text-dark item-total-material" readonly value="0.0 Kg" title="Total Material">
+                                    <input type="text" class="form-control bg-light fw-bold text-dark item-total-material" readonly value="0.0 Kg">
                                     <span class="micro-label text-muted d-block mt-1">Total Material</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SUB SECTION MULTI COMPOUND -->
                     <div class="sub-material-box mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold text-dark small"><i class="fa-solid fa-flask text-primary me-1"></i> Rincian Pemakaian Compound (Bisa Multi-Jenis)</span>
-                            <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-1 px-2" onclick="addCompoundRow('${itemBlockId}')">
-                                <i class="fa-solid fa-plus me-1"></i> Tambah Baris Compound
-                            </button>
+                            <span class="fw-bold text-dark small"><i class="fa-solid fa-flask text-primary me-1"></i> Rincian Pemakaian Compound</span>
+                            <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-1 px-2" onclick="addCompoundRow('${itemBlockId}')"><i class="fa-solid fa-plus me-1"></i> Tambah</button>
                         </div>
                         <div class="compounds-container d-flex flex-column gap-2" id="compounds-container-${itemBlockId}"></div>
                     </div>
 
-                    <!-- SUB SECTION MULTI METAL INSERT -->
                     <div class="sub-material-box mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold text-dark small"><i class="fa-solid fa-layer-group text-info me-1"></i> Rincian Pemakaian Metal Insert (Bisa Multi-Jenis)</span>
-                            <button type="button" class="btn btn-xs btn-outline-info fw-bold py-1 px-2" onclick="addMetalRow('${itemBlockId}')">
-                                <i class="fa-solid fa-plus me-1"></i> Tambah Baris Metal Insert
-                            </button>
+                            <span class="fw-bold text-dark small"><i class="fa-solid fa-layer-group text-info me-1"></i> Rincian Pemakaian Metal Insert</span>
+                            <button type="button" class="btn btn-xs btn-outline-info fw-bold py-1 px-2" onclick="addMetalRow('${itemBlockId}')"><i class="fa-solid fa-plus me-1"></i> Tambah</button>
                         </div>
                         <div class="metals-container d-flex flex-column gap-2" id="metals-container-${itemBlockId}"></div>
                     </div>
 
-                    <!-- DETAIL PROBLEM & TINDAKAN -->
                     <div class="bg-light p-3 rounded border mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Detail Problem, Analisa, & Tindakan Item Ini</span>
-                            <button type="button" class="btn btn-xs btn-primary fw-bold py-1 px-2" onclick="addProblemToItem('${itemBlockId}')">
-                                <i class="fa-solid fa-plus me-1"></i> Tambah Problem
-                            </button>
+                            <span class="small fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Detail Problem, Analisa, & Tindakan</span>
+                            <button type="button" class="btn btn-xs btn-primary fw-bold py-1 px-2" onclick="addProblemToItem('${itemBlockId}')"><i class="fa-solid fa-plus me-1"></i> Tambah Problem</button>
                         </div>
                         <div class="problems-container d-flex flex-column gap-3" id="problems-container-${itemBlockId}"></div>
                     </div>
@@ -789,7 +875,7 @@
                         <select class="form-select form-select-sm comp-name-dropdown" onchange="handleCompoundDropdownChange('${cRowId}')" required>
                             ${compOptions}
                         </select>
-                        <input type="text" class="form-control form-control-sm comp-name-custom mt-1" placeholder="Ketik nama compound baru..." value="${customVal}" style="display: ${customDisplay};" ${isCustom ? 'required' : ''}>
+                        <input type="text" class="form-control form-control-sm comp-name-custom mt-1" placeholder="Ketik compound baru..." value="${customVal}" style="display: ${customDisplay};" ${isCustom ? 'required' : ''}>
                     </div>
                     <div class="col-md-5">
                         <div class="input-group input-group-sm">
@@ -844,7 +930,7 @@
                         <select class="form-select form-select-sm metal-name-dropdown" onchange="handleMetalDropdownChange('${mRowId}')">
                             ${metalOptions}
                         </select>
-                        <input type="text" class="form-control form-control-sm metal-name-custom mt-1" placeholder="Ketik metal insert baru..." value="${customVal}" style="display: ${customDisplay};">
+                        <input type="text" class="form-control form-control-sm metal-name-custom mt-1" placeholder="Ketik metal baru..." value="${customVal}" style="display: ${customDisplay};">
                     </div>
                     <div class="col-md-5">
                         <div class="input-group input-group-sm">
@@ -935,14 +1021,14 @@
                         <div class="col-md-6 border-top pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label micro-label fw-bold text-dark">Analisa</label>
-                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-0 px-2" onclick="addAnalisaField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah Analisa</button>
+                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-0 px-2" onclick="addAnalisaField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah</button>
                             </div>
                             <div class="analisa-container d-flex flex-column gap-1" id="analisa-container-${probCardId}"></div>
                         </div>
                         <div class="col-md-6 border-top pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label micro-label fw-bold text-dark">Follow Up</label>
-                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-0 px-2" onclick="addFollowUpField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah Follow Up</button>
+                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold py-0 px-2" onclick="addFollowUpField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah</button>
                             </div>
                             <div class="followup-container d-flex flex-column gap-1" id="followup-container-${probCardId}"></div>
                         </div>
@@ -950,22 +1036,22 @@
                         <div class="col-md-12 border-top pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label micro-label fw-bold text-dark">Tindakan Improvement / Perbaikan</label>
-                                <button type="button" class="btn btn-xs btn-outline-success fw-bold py-0 px-2" onclick="addTindakanField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah Tindakan</button>
+                                <button type="button" class="btn btn-xs btn-outline-success fw-bold py-0 px-2" onclick="addTindakanField('${probCardId}')"><i class="fa-solid fa-plus"></i> Tambah</button>
                             </div>
                             <div class="tindakan-container d-flex flex-column gap-1" id="tindakan-container-${probCardId}"></div>
                         </div>
 
                         <div class="col-md-6 border-top pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label micro-label fw-bold text-dark">Foto Problem (Bisa Banyak)</label>
-                                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold py-0 px-2" onclick="addPhotoSlot('${probCardId}', 'prob')"><i class="fa-solid fa-camera"></i> Tambah Foto</button>
+                                <label class="form-label micro-label fw-bold text-dark">Foto Problem</label>
+                                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold py-0 px-2" onclick="addPhotoSlot('${probCardId}', 'prob')"><i class="fa-solid fa-camera"></i> Foto</button>
                             </div>
                             <div class="multi-photo-container" id="prob-photos-${probCardId}"></div>
                         </div>
                         <div class="col-md-6 border-top pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label micro-label fw-bold text-dark">Foto Improvement (Bisa Banyak)</label>
-                                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold py-0 px-2" onclick="addPhotoSlot('${probCardId}', 'imp')"><i class="fa-solid fa-camera"></i> Tambah Foto</button>
+                                <label class="form-label micro-label fw-bold text-dark">Foto Improvement</label>
+                                <button type="button" class="btn btn-xs btn-outline-secondary fw-bold py-0 px-2" onclick="addPhotoSlot('${probCardId}', 'imp')"><i class="fa-solid fa-camera"></i> Foto</button>
                             </div>
                             <div class="multi-photo-container" id="imp-photos-${probCardId}"></div>
                         </div>
@@ -1150,7 +1236,6 @@
                     if(cName && wVal > 0) {
                         compoundList.push({ name: cName, weight: wVal });
                         totalCompoundKg += wVal;
-
                         if(cDropdown.value === "CUSTOM_INPUT" && !dynamicMasterCompounds.includes(cName)) {
                             dynamicMasterCompounds.push(cName);
                         }
@@ -1168,7 +1253,6 @@
                     if(mName && wVal > 0) {
                         metalList.push({ name: mName, weight: wVal });
                         totalMetalKg += wVal;
-
                         if(mDropdown.value === "CUSTOM_INPUT" && !dynamicMasterMetals.includes(mName)) {
                             dynamicMasterMetals.push(mName);
                         }
@@ -1305,7 +1389,6 @@
                     metalDetailText = item.metalList.map(m => `${m.name}: ${m.weight}Kg`).join('<br>');
                 }
 
-                // PEMPROSESAN FOTO BUKTI (MENGGUNAKAN DIRECT EMBED URL GOOGLE DRIVE)
                 let probImgHtml = '';
                 (prob.fotoProblemList || []).forEach(url => { 
                     if(url) {
@@ -1325,12 +1408,19 @@
                 const picName = report.header.pic || "-";
                 const formattedDate = formatTanggalIndo(report.header.tanggal);
 
+                let actionButtons = '';
+                if (currentUser && currentUser.role !== "Viewer") {
+                    actionButtons = `
+                        <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                } else {
+                    actionButtons = `<span class="text-muted small">Read-Only</span>`;
+                }
+
                 htmlDesktop += `
                     <tr>
-                        <td class="no-print">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus Laporan Shift Ini"><i class="fa-solid fa-trash"></i></button>
-                        </td>
+                        <td class="no-print">${actionButtons}</td>
                         <td><small class="fw-bold text-dark">${formattedDate}</small><br><span class="badge bg-secondary">${report.header.shift}</span><br><strong class="text-primary">${report.header.namaMesin}</strong><br><small class="text-dark fw-bold"><i class="fa-solid fa-user me-1"></i>${picName}</small></td>
                         <td><strong class="text-dark">${item.namaItem}</strong></td>
                         <td><small class="text-dark fw-semibold">${compDetailText}<br>${metalDetailText}<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
@@ -1341,6 +1431,14 @@
                         <td><div class="d-flex flex-wrap">${probImgHtml || '<span class="text-dark small fw-bold">No Prob</span>'}</div><div class="d-flex flex-wrap mt-1">${impImgHtml || '<span class="text-dark small fw-bold">No Imp</span>'}</div></td>
                     </tr>
                 `;
+
+                let mobileActions = '';
+                if (currentUser && currentUser.role !== "Viewer") {
+                    mobileActions = `
+                        <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
+                        <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
+                    `;
+                }
 
                 htmlMobile += `
                     <div class="history-mobile-card">
@@ -1376,13 +1474,8 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1 border-top">
-                            <div class="d-flex gap-1 flex-wrap">
-                                ${probImgHtml} ${impImgHtml}
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
-                                <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
-                            </div>
+                            <div class="d-flex gap-1 flex-wrap">${probImgHtml} ${impImgHtml}</div>
+                            <div class="d-flex gap-2">${mobileActions}</div>
                         </div>
                     </div>
                 `;
@@ -1411,9 +1504,7 @@
                     if (filterMachine === "FLOKLES") {
                         totalMatSum += totMat;
                     } else {
-                        if (!isFlokles) {
-                            totalMatSum += totMat;
-                        }
+                        if (!isFlokles) totalMatSum += totMat;
                     }
 
                     (item.problems || []).forEach(prob => {
@@ -1472,13 +1563,8 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
-                        x: { grid: { display: false } }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
                 }
             });
         }
@@ -1537,6 +1623,11 @@
         }
 
         function editReport(reportId) {
+            if (currentUser && currentUser.role === "Viewer") {
+                alert("Akun Viewer tidak memiliki izin untuk merevisi laporan!");
+                return;
+            }
+
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             const report = history.find(r => r.reportId === reportId);
             if(!report) return;
@@ -1569,7 +1660,11 @@
             document.getElementById('cancelEditBtn').classList.add('d-none');
 
             document.getElementById('productionForm').reset();
-            document.getElementById('picName').value = '';
+            if (currentUser && currentUser.role !== "Operator") {
+                document.getElementById('picName').value = currentUser.pic;
+            } else {
+                document.getElementById('picName').value = '';
+            }
             document.getElementById('itemBlocksContainer').innerHTML = '';
             itemIndex = 0;
             const today = new Date().toISOString().split('T')[0];
@@ -1593,6 +1688,10 @@
         }
 
         function openDeleteShiftModal(reportId) {
+            if (currentUser && currentUser.role === "Viewer") {
+                alert("Akun Viewer tidak memiliki izin untuk menghapus laporan!");
+                return;
+            }
             deleteTargetAction = reportId;
             document.getElementById('deleteModalDesc').innerText = "Masukkan password supervisor untuk menghapus laporan shift ini secara permanen.";
             document.getElementById('deletePasswordInput').value = '';
@@ -1600,6 +1699,10 @@
         }
 
         function openDeleteAllModal() {
+            if (currentUser && currentUser.role === "Viewer") {
+                alert("Akun Viewer tidak memiliki izin untuk menghapus data!");
+                return;
+            }
             deleteTargetAction = 'all';
             document.getElementById('deleteModalDesc').innerText = "Masukkan password supervisor untuk menghapus SELURUH riwayat data secara permanen.";
             document.getElementById('deletePasswordInput').value = '';
