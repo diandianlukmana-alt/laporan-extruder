@@ -450,7 +450,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbTrGUqKWnMQbGZExg4sFygB14NYocgJqD0wQsBTerHyJONqdEO8-GOyYtBp4HcTCgKQ/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwT8_PbTEttW4AWmIO9HgsZheePRTtf1VplWC83lYkR71KLKnXgsp4YX5aCoV98p_ZFlw/execc"; 
         const DELETE_PASSWORD = "hapus1234";
 
         let dynamicMasterItems = [];
@@ -493,6 +493,12 @@
                     dynamicMasterItems = result.items || [];
                     dynamicCategories = result.categories || [];
                     
+                    // OTOMATIS SINKRONKAN RIWAYAT DARI GOOGLE SHEETS KE PERANGKAT APAPUN
+                    if(result.reports && result.reports.length > 0) {
+                        localStorage.setItem('extruder_reports_v7', JSON.stringify(result.reports));
+                        renderHistoryTable();
+                    }
+
                     if(result.compounds) {
                         dynamicMasterCompounds = [...new Set([...dynamicMasterCompounds, ...result.compounds])];
                     }
@@ -544,7 +550,7 @@
             dynamicMasterItems.forEach(item => {
                 options += `<option value="${item}" ${currentValue === item ? 'selected' : ''}>${item}</option>`;
             });
-            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}✏️ Ketik Nama Item Lain (Manual)...</option>`;
+            options += `<option value="CUSTOM_INPUT" ${currentValue === 'CUSTOM_INPUT' ? 'selected' : ''}>✏️ Ketik Nama Item Lain (Manual)...</option>`;
             select.innerHTML = options;
         }
 
@@ -676,7 +682,6 @@
             `;
             container.insertAdjacentHTML('beforeend', html);
 
-            // Populate Compound List
             if(existingData && existingData.compoundList && existingData.compoundList.length > 0) {
                 existingData.compoundList.forEach(c => addCompoundRow(itemBlockId, c));
             } else if(existingData && existingData.compound) {
@@ -685,7 +690,6 @@
                 addCompoundRow(itemBlockId);
             }
 
-            // Populate Metal Insert List
             if(existingData && existingData.metalList && existingData.metalList.length > 0) {
                 existingData.metalList.forEach(m => addMetalRow(itemBlockId, m));
             } else if(existingData && existingData.metalInsert && parseFloat(existingData.metalInsert) > 0) {
@@ -694,7 +698,6 @@
                 addMetalRow(itemBlockId);
             }
 
-            // Populate Problems List
             if(existingData && existingData.problems) {
                 existingData.problems.forEach(pData => addProblemToItem(itemBlockId, pData));
             } else {
@@ -722,7 +725,6 @@
             document.getElementById(itemBlockId)?.remove();
         }
 
-        /* --- LOGIKA BARIS MULTI COMPOUND --- */
         function addCompoundRow(itemBlockId, existingComp = null) {
             const container = document.getElementById(`compounds-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
@@ -778,7 +780,6 @@
             }
         }
 
-        /* --- LOGIKA BARIS MULTI METAL INSERT --- */
         function addMetalRow(itemBlockId, existingMetal = null) {
             const container = document.getElementById(`metals-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
@@ -1025,7 +1026,6 @@
             }
         }
 
-        /* --- PENJUMLAHAN RUMUS OTOMATIS (REALTIME) --- */
         function calculateItemTotals(itemBlockId) {
             const block = document.getElementById(itemBlockId);
             if(!block) return;
@@ -1096,7 +1096,6 @@
                 const customInput = block.querySelector('.item-nama-custom');
                 let namaItem = dropdown.value === "CUSTOM_INPUT" ? customInput.value : dropdown.value;
 
-                // Collect Compound List & Auto Save Master
                 const compoundList = [];
                 let totalCompoundKg = 0;
                 block.querySelectorAll('.sub-compound-row').forEach(cRow => {
@@ -1115,7 +1114,6 @@
                     }
                 });
 
-                // Collect Metal Insert List & Auto Save Master
                 const metalList = [];
                 let totalMetalKg = 0;
                 block.querySelectorAll('.sub-metal-row').forEach(mRow => {
@@ -1254,7 +1252,6 @@
                 const comp = parseFloat(item.compound) || 0;
                 const met = parseFloat(item.metalInsert) || 0;
 
-                // Format Rincian Multi Compound & Metal
                 let compDetailText = `Comp: ${comp} Kg`;
                 if(item.compoundList && item.compoundList.length > 0) {
                     compDetailText = item.compoundList.map(c => `${c.name}: ${c.weight}Kg`).join('<br>');
