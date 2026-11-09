@@ -412,7 +412,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8B8NhZE4cDOLRoN0YhHJH_bcwEbfLFqEw69fLKZc48AM_vJFJR4EHw65K8jmVh7LPfQ/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXA2244H4ul7REC2unyU-lTszJu2nbOWkpFzIleP-ntvDbLHGPXlLRtLbK8REuFY9zdA/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
         // DATABASE AKUN PENGGUNA
@@ -542,7 +542,6 @@
             if (currentUser.role === "Viewer") {
                 badge.className = "badge bg-info px-3 py-2 fw-bold fs-6 text-dark";
                 badge.innerHTML = `🔵 SESI AKTIF: Viewer`;
-                // VIEWER HANYA BISA LIHAT DASHBOARD
                 switchTab('history');
                 navTabForm.style.display = 'none';
                 if(btnDeleteAll) btnDeleteAll.style.display = 'none';
@@ -553,7 +552,6 @@
                 picInput.readOnly = false;
                 picInput.placeholder = "Ketik nama operator...";
             } else {
-                // FULL ACCESS (AMIR, DEDEN, WAIDIN, HAKIM, LESTARI, DIAN)
                 badge.className = "badge bg-success px-3 py-2 fw-bold fs-6";
                 badge.innerHTML = `🟢 SESI AKTIF: ${currentUser.pic}`;
                 picInput.value = currentUser.pic;
@@ -566,11 +564,10 @@
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             autoRefreshInterval = setInterval(async () => {
                 const historySection = document.getElementById('section-history');
-                // Hanya refresh otomatis jika user sedang membuka tab dashboard/riwayat agar tidak mengganggu ketikan di form
                 if (historySection && !historySection.classList.contains('d-none')) {
                     await fetchMasterDataFromSheet();
                 }
-            }, 30000); // 30000 ms = 30 detik
+            }, 30000);
         }
 
         function loadLocalMaterialMasters() {
