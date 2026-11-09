@@ -128,7 +128,7 @@
 </head>
 <body>
 
-    <!-- NAVBAR DENGAN INDIKATOR SESI & TOMBOL LOGOUT -->
+    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top mb-4">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
@@ -136,9 +136,7 @@
                 <span>LAPORAN PROBLEM EXTRUDER</span>
             </a>
             <div class="d-flex align-items-center gap-3">
-                <div class="d-none d-md-flex align-items-center">
-                    <span id="navSessionBadge" class="badge bg-danger px-3 py-2 fw-bold fs-6">🔴 BELUM LOGIN / KOSONG</span>
-                </div>
+                <span id="navSessionBadge" class="badge bg-success px-3 py-2 fw-bold fs-6">🟢 SESI AKTIF: Extruderautoseal</span>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-primary btn-sm fw-bold" onclick="switchTab('form')" id="navTabForm"><i class="fa-solid fa-pen-to-square me-1"></i> Form</button>
                     <button class="btn btn-outline-secondary btn-sm fw-bold" onclick="switchTab('history')" id="navTabHistory"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</button>
@@ -148,7 +146,7 @@
         </div>
     </nav>
 
-    <!-- MODAL LOGIN DI AWAL (GERBANG MASUK UTAMA) -->
+    <!-- MODAL LOGIN 1 USER (SINGLE SESSION) -->
     <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -160,12 +158,11 @@
                     <form id="loginForm" onsubmit="executeLogin(event)">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-dark">Username</label>
-                            <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username..." required>
+                            <input type="text" id="loginUsername" class="form-control" value="Extruderautoseal" readonly>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-dark">Password</label>
-                            <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password...">
-                            <div class="form-text small text-muted">Akun Viewer dapat dikosongkan password-nya.</div>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password..." required>
                         </div>
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary-custom py-2 fw-bold">Masuk ke Sistem</button>
@@ -392,11 +389,11 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fa-solid fa-lock me-2"></i>Konfirmasi Password Supervisor</h5>
+                    <h5 class="modal-title"><i class="fa-solid fa-lock me-2"></i>Konfirmasi Password</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-dark fw-semibold small mb-2" id="deleteModalDesc">Masukkan password supervisor untuk menghapus data.</p>
+                    <p class="text-dark fw-semibold small mb-2" id="deleteModalDesc">Masukkan password untuk menghapus data.</p>
                     <div class="input-group">
                         <input type="password" id="deletePasswordInput" class="form-control" placeholder="Masukkan password..." onkeydown="if(event.key === 'Enter') executeDeleteAction()">
                         <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()"><i class="fa-solid fa-eye" id="eyeIcon"></i></button>
@@ -412,23 +409,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCqSIJbiqBey6pAIYHmVb3BXh8r82F1_xCc2Ui5s9MH5-phvzRzTmlU7X8x6z6cuXXMg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWOM7c63f1F3GPeUXGC9nMMO6y1hIHY7-OBXLUNI1mJTQ-XvegMcxVZg7rNn-6PR8aow/exec"; 
+        
+        // Kredensial 1 User Tunggal
+        const LOGIN_USERNAME = "Extruderautoseal";
+        const LOGIN_PASSWORD = "inoac1234";
         const DELETE_PASSWORD = "hapus1234";
 
-        const USER_ACCOUNTS = [
-            { username: "Amir", pass: "amir123", pic: "Amir", role: "Full" },
-            { username: "Deden", pass: "deden456", pic: "Deden", role: "Full" },
-            { username: "Waidin", pass: "waidin789", pic: "Waidin", role: "Full" },
-            { username: "Hakim", pass: "hakim321", pic: "Hakim", role: "Full" },
-            { username: "Lestari", pass: "lestari123", pic: "Lestari", role: "Full" },
-            { username: "Dian", pass: "dian123", pic: "Dian", role: "Full" },
-            { username: "Operator", pass: "Operator123", pic: "", role: "Operator" },
-            { username: "Viewer", pass: "", pic: "Viewer", role: "Viewer" }
-        ];
-
-        let currentUser = null;
         let loginModalInstance = null;
-
         let dynamicMasterItems = [];
         let dynamicCategories = [];
         let dynamicMasterCompounds = [];
@@ -457,101 +445,73 @@
         });
 
         function checkActiveSession() {
-            const savedUser = localStorage.getItem('extruder_logged_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                applyUserPermissions();
-            } else {
-                loginModalInstance.show();
-            }
-        }
-
-        function executeLogin(event) {
-            event.preventDefault();
-            const uInput = document.getElementById('loginUsername').value.trim();
-            const pInput = document.getElementById('loginPassword').value.trim();
-            const alertBox = document.getElementById('loginAlertBox');
-
-            const matched = USER_ACCOUNTS.find(acc => acc.username.toLowerCase() === uInput.toLowerCase());
-            if (!matched) {
-                alertBox.innerText = "Username tidak ditemukan!";
-                alertBox.classList.remove('d-none');
-                return;
-            }
-
-            if (matched.pass !== "" && matched.pass !== pInput) {
-                alertBox.innerText = "Password salah!";
-                alertBox.classList.remove('d-none');
-                return;
-            }
-
-            let activeSessions = JSON.parse(localStorage.getItem('extruder_active_sessions') || '{}');
+            const isLogged = localStorage.getItem('extruder_is_logged');
+            const activeDevice = localStorage.getItem('extruder_active_device');
             const deviceId = getDeviceId();
 
-            if (activeSessions[matched.username] && activeSessions[matched.username] !== deviceId) {
-                alertBox.innerHTML = `⚠️ <b>Akses Ditolak:</b> Akun <b>${matched.username}</b> sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.`;
-                alertBox.classList.remove('d-none');
-                return;
+            if (isLogged === "true") {
+                // Periksa apakah sesi aktif di perangkat lain
+                if (activeDevice && activeDevice !== deviceId) {
+                    // Batalkan sesi dan tampilkan login dengan pesan
+                    localStorage.removeItem('extruder_is_logged');
+                    loginModalInstance.show();
+                    const alertBox = document.getElementById('loginAlertBox');
+                    alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
+                    alertBox.classList.remove('d-none');
+                } else {
+                    // Sesi valid di perangkat ini
+                    localStorage.setItem('extruder_active_device', deviceId);
+                }
+            } else {
+                let activeSessions = localStorage.getItem('extruder_active_device');
+                if (activeSessions && activeSessions !== deviceId) {
+                    const alertBox = document.getElementById('loginAlertBox');
+                    alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
+                    alertBox.classList.remove('d-none');
+                }
+                loginModalInstance.show();
             }
-
-            activeSessions[matched.username] = deviceId;
-            localStorage.setItem('extruder_active_sessions', JSON.stringify(activeSessions));
-            localStorage.setItem('extruder_device_id', deviceId);
-
-            currentUser = matched;
-            localStorage.setItem('extruder_logged_user', JSON.stringify(currentUser));
-
-            alertBox.classList.add('d-none');
-            loginModalInstance.hide();
-            applyUserPermissions();
-        }
-
-        function handleLogout() {
-            if (currentUser) {
-                let activeSessions = JSON.parse(localStorage.getItem('extruder_active_sessions') || '{}');
-                delete activeSessions[currentUser.username];
-                localStorage.setItem('extruder_active_sessions', JSON.stringify(activeSessions));
-            }
-            localStorage.removeItem('extruder_logged_user');
-            currentUser = null;
-            location.reload();
         }
 
         function getDeviceId() {
             let id = localStorage.getItem('extruder_device_id');
             if (!id) {
-                id = 'dev-' + Math.random().toString(36.substring(2, 9));
+                id = 'dev-' + Math.random().toString(36).substring(2, 9);
                 localStorage.setItem('extruder_device_id', id);
             }
             return id;
         }
 
-        function applyUserPermissions() {
-            const badge = document.getElementById('navSessionBadge');
-            const picInput = document.getElementById('picName');
-            const btnDeleteAll = document.getElementById('btnDeleteAll');
-            const navTabForm = document.getElementById('navTabForm');
+        function executeLogin(event) {
+            event.preventDefault();
+            const pInput = document.getElementById('loginPassword').value.trim();
+            const alertBox = document.getElementById('loginAlertBox');
+            const deviceId = getDeviceId();
 
-            if (!currentUser) return;
-
-            if (currentUser.role === "Viewer") {
-                badge.className = "badge bg-info px-3 py-2 fw-bold fs-6 text-dark";
-                badge.innerHTML = `🔵 SESI AKTIF: Viewer`;
-                switchTab('history');
-                navTabForm.style.display = 'none';
-                if(btnDeleteAll) btnDeleteAll.style.display = 'none';
-            } else if (currentUser.role === "Operator") {
-                badge.className = "badge bg-success px-3 py-2 fw-bold fs-6";
-                badge.innerHTML = `🟢 SESI AKTIF: Operator`;
-                picInput.value = "";
-                picInput.readOnly = false;
-                picInput.placeholder = "Ketik nama operator...";
-            } else {
-                badge.className = "badge bg-success px-3 py-2 fw-bold fs-6";
-                badge.innerHTML = `🟢 SESI AKTIF: ${currentUser.pic}`;
-                picInput.value = currentUser.pic;
-                picInput.readOnly = true;
+            // Cek apakah sedang aktif di perangkat lain
+            const activeDevice = localStorage.getItem('extruder_active_device');
+            if (activeDevice && activeDevice !== deviceId) {
+                alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
+                alertBox.classList.remove('d-none');
+                return;
             }
+
+            if (pInput !== LOGIN_PASSWORD) {
+                alertBox.innerText = "Password salah!";
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            localStorage.setItem('extruder_is_logged', "true");
+            localStorage.setItem('extruder_active_device', deviceId);
+            alertBox.classList.add('d-none');
+            loginModalInstance.hide();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('extruder_is_logged');
+            localStorage.removeItem('extruder_active_device');
+            location.reload();
         }
 
         function startAutoRefresh() {
@@ -1396,18 +1356,13 @@
                     }
                 });
 
-                const picName = report.header.pic || "-";
+                const picName = report.header.pic || "Extruderautoseal";
                 const formattedDate = formatTanggalIndo(report.header.tanggal);
 
-                let actionButtons = '';
-                if (currentUser && currentUser.role !== "Viewer") {
-                    actionButtons = `
-                        <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                    `;
-                } else {
-                    actionButtons = `<span class="text-muted small">Read-Only</span>`;
-                }
+                let actionButtons = `
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                `;
 
                 htmlDesktop += `
                     <tr>
@@ -1423,13 +1378,10 @@
                     </tr>
                 `;
 
-                let mobileActions = '';
-                if (currentUser && currentUser.role !== "Viewer") {
-                    mobileActions = `
-                        <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
-                        <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
-                    `;
-                }
+                let mobileActions = `
+                    <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" onclick="editReport('${report.reportId}')"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
+                    <button class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" onclick="openDeleteShiftModal('${report.reportId}')"><i class="fa-solid fa-trash me-1"></i> Hapus</button>
+                `;
 
                 htmlMobile += `
                     <div class="history-mobile-card">
@@ -1614,11 +1566,6 @@
         }
 
         function editReport(reportId) {
-            if (currentUser && currentUser.role === "Viewer") {
-                alert("Akun Viewer tidak memiliki izin untuk merevisi laporan!");
-                return;
-            }
-
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             const report = history.find(r => r.reportId === reportId);
             if(!report) return;
@@ -1634,7 +1581,7 @@
             updateHari();
             document.getElementById('shift').value = report.header.shift;
             document.getElementById('namaMesin').value = report.header.namaMesin;
-            document.getElementById('picName').value = report.header.pic || '';
+            document.getElementById('picName').value = report.header.pic || 'Extruderautoseal';
 
             document.getElementById('itemBlocksContainer').innerHTML = '';
             itemIndex = 0;
@@ -1651,11 +1598,7 @@
             document.getElementById('cancelEditBtn').classList.add('d-none');
 
             document.getElementById('productionForm').reset();
-            if (currentUser && currentUser.role !== "Operator") {
-                document.getElementById('picName').value = currentUser.pic;
-            } else {
-                document.getElementById('picName').value = '';
-            }
+            document.getElementById('picName').value = 'Extruderautoseal';
             document.getElementById('itemBlocksContainer').innerHTML = '';
             itemIndex = 0;
             const today = new Date().toISOString().split('T')[0];
@@ -1679,10 +1622,6 @@
         }
 
         function openDeleteShiftModal(reportId) {
-            if (currentUser && currentUser.role === "Viewer") {
-                alert("Akun Viewer tidak memiliki izin untuk menghapus laporan!");
-                return;
-            }
             deleteTargetAction = reportId;
             document.getElementById('deleteModalDesc').innerText = "Masukkan password supervisor untuk menghapus laporan shift ini secara permanen.";
             document.getElementById('deletePasswordInput').value = '';
@@ -1690,10 +1629,6 @@
         }
 
         function openDeleteAllModal() {
-            if (currentUser && currentUser.role === "Viewer") {
-                alert("Akun Viewer tidak memiliki izin untuk menghapus data!");
-                return;
-            }
             deleteTargetAction = 'all';
             document.getElementById('deleteModalDesc').innerText = "Masukkan password supervisor untuk menghapus SELURUH riwayat data secara permanen.";
             document.getElementById('deletePasswordInput').value = '';
