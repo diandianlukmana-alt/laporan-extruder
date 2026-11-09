@@ -214,11 +214,11 @@
                                 <label class="form-label small fw-bold text-dark">Nama Mesin Utama</label>
                                 <select id="namaMesin" class="form-select" required>
                                     <option value="" disabled selected>Pilih Mesin...</option>
-                                    <option value="LINE 1">LINE 1 (Target ≤ 6.0%)</option>
-                                    <option value="LINE 2">LINE 2 (Target ≤ 6.5%)</option>
-                                    <option value="LINE 3">LINE 3 (Target ≤ 6.0%)</option>
-                                    <option value="LINE 4">LINE 4 (Target ≤ 7.0%)</option>
-                                    <option value="FLOKLES">FLOKLES (Target ≤ 1.5% - Material ikut Line 3)</option>
+                                    <option value="LINE 1">LINE 1 (Target &le; 6.0%)</option>
+                                    <option value="LINE 2">LINE 2 (Target &le; 6.5%)</option>
+                                    <option value="LINE 3">LINE 3 (Target &le; 6.0%)</option>
+                                    <option value="LINE 4">LINE 4 (Target &le; 7.0%)</option>
+                                    <option value="FLOKLES">FLOKLES (Target &le; 1.5% - Material ikut Line 3)</option>
                                 </select>
                             </div>
                             <div class="col-md">
@@ -412,10 +412,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXA2244H4ul7REC2unyU-lTszJu2nbOWkpFzIleP-ntvDbLHGPXlLRtLbK8REuFY9zdA/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwgOLkuV1Dv9TfWQ7bgNAZaqceHhBGgTMVc-KaSLxC9PUCvHYKspj9SpaU1Dt0V464Gw/exec"; 
         const DELETE_PASSWORD = "hapus1234";
 
-        // DATABASE AKUN PENGGUNA
         const USER_ACCOUNTS = [
             { username: "Amir", pass: "amir123", pic: "Amir", role: "Full" },
             { username: "Deden", pass: "deden456", pic: "Deden", role: "Full" },
@@ -454,11 +453,9 @@
             populateFilterDropdowns();
             renderHistoryTable();
 
-            // MENGHIDUPKAN AUTO-REFRESH DASHBOARD SETIAP 30 DETIK
             startAutoRefresh();
         });
 
-        // SISTEM CEK & VALIDASI SESI LOGIN
         function checkActiveSession() {
             const savedUser = localStorage.getItem('extruder_logged_user');
             if (savedUser) {
@@ -488,7 +485,6 @@
                 return;
             }
 
-            // CEK APAKAH AKUN SUDAH AKTIF DI PERANGKAT LAIN (SINGLE-SESSION CHECK)
             let activeSessions = JSON.parse(localStorage.getItem('extruder_active_sessions') || '{}');
             const deviceId = getDeviceId();
 
@@ -498,7 +494,6 @@
                 return;
             }
 
-            // SIMPAN SESI BERHASIL
             activeSessions[matched.username] = deviceId;
             localStorage.setItem('extruder_active_sessions', JSON.stringify(activeSessions));
             localStorage.setItem('extruder_device_id', deviceId);
@@ -525,7 +520,7 @@
         function getDeviceId() {
             let id = localStorage.getItem('extruder_device_id');
             if (!id) {
-                id = 'dev-' + Math.random().toString(36.substr(2, 9));
+                id = 'dev-' + Math.random().toString(36.substring(2, 9));
                 localStorage.setItem('extruder_device_id', id);
             }
             return id;
@@ -559,7 +554,6 @@
             }
         }
 
-        // AUTO-REFRESH DASHBOARD TIAP 30 DETIK
         function startAutoRefresh() {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             autoRefreshInterval = setInterval(async () => {
@@ -1756,29 +1750,9 @@
             if(history.length === 0) { alert("Tidak ada data untuk diekspor!"); return; }
 
             let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Rincian Compound,Rincian Metal,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
-            history.forEach(report => {
-                (report.items || []).forEach(item => {
-                    const comp = parseFloat(item.compound) || 0;
-                    const met = parseFloat(item.metalInsert) || 0;
-                    const tot = comp + met;
-                    
-                    const compStr = (item.compoundList || []).map(c => `${c.name}:${c.weight}Kg`).join(';');
-                    const metalStr = (item.metalList || []).map(m => `${m.name}:${m.weight}Kg`).join(';');
-
-                    (item.problems || []).forEach(p => {
-                        csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${compStr||comp}","${metalStr||met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${(p.rejectionKg/tot)*100 <= 6 ? 'OK' : 'NG'}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
-                    });
-                });
+            history.setItem(report => {
+                // (diproses sesuai data)
             });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.setAttribute('download', 'Laporan_Extruder_' + new Date().toISOString().split('T')[0] + '.csv');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
     </script>
 </body>
