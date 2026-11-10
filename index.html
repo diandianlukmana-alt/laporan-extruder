@@ -1608,7 +1608,7 @@
             }
 
             let primaryMachine = filtered[0].header.namaMesin || "LINE 1";
-            let countedReportIds = new Set(); // Mencegah material terhitung 2x untuk laporan ID yang sama
+            let countedReportIds = new Set();
 
             filtered.forEach((report) => {
                 const h = report.header;
@@ -1617,6 +1617,14 @@
                 (report.items || []).forEach(item => {
                     let comp = parseFloat(item.compound) || 0;
                     let met = parseFloat(item.metalInsert) || 0;
+                    
+                    if(item.compoundList && item.compoundList.length > 0) {
+                        comp = item.compoundList.reduce((acc, c) => acc + (parseFloat(c.weight) || 0), 0);
+                    }
+                    if(item.metalList && item.metalList.length > 0) {
+                        met = item.metalList.reduce((acc, m) => acc + (parseFloat(m.weight) || 0), 0);
+                    }
+
                     let totMat = comp + met;
 
                     let uniqueMaterialKey = reportId + '-' + item.namaItem;
@@ -1625,9 +1633,22 @@
                         countedReportIds.add(uniqueMaterialKey);
                     }
 
-                    let compDetails = (item.compoundList || []).map(c => `${c.name}: ${c.weight} Kg`).join('<br>');
-                    let metalDetails = (item.metalList || []).map(m => `${m.name}: ${m.weight} Kg`).join('<br>');
-                    let materialSummaryHtml = `<small class="text-primary fw-bold">Comp:</small><br>${compDetails || '-'} <br><small class="text-info fw-bold">Metal:</small><br>${metalDetails || '-'} <br><strong>Tot: ${totMat.toFixed(1)} Kg</strong>`;
+                    let compDetails = '-';
+                    if (item.compoundList && item.compoundList.length > 0) {
+                        compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
+                    } else if (comp > 0) {
+                        compDetails = `• Compound Utama: ${comp} Kg`;
+                    }
+
+                    let metalDetails = '-';
+                    if (item.metalList && item.metalList.length > 0) {
+                        metalDetails = item.metalList.map(m => `• ${m.name}: ${m.weight} Kg`).join('<br>');
+                    } else if (met > 0) {
+                        metalDetails = `• Metal Insert Utama: ${met} Kg`;
+                    }
+
+                    // Mengubah tulisan "Tot:" menjadi "Total Material:"
+                    let materialSummaryHtml = `<small class="text-primary fw-bold">Compound:</small><br>${compDetails}<br><small class="text-info fw-bold">Metal Insert:</small><br>${metalDetails}<br><strong>Total Material: ${totMat.toFixed(1)} Kg</strong>`;
 
                     (item.problems || []).forEach(prob => {
                         let rejKg = parseFloat(prob.rejectionKg) || 0;
