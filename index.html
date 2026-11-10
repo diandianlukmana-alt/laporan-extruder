@@ -366,13 +366,13 @@
                     <div class="row g-4 mb-4 no-print">
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-column me-2"></i>Akumulasi Rejection Berdasarkan Faktor</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-column me-2 text-danger"></i>Akumulasi Rejection Berdasarkan Faktor</h6>
                                 <canvas id="factorChart" style="max-height: 220px;"></canvas>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-bar me-2"></i>10 Kategori Rejection Tertinggi (Kg & %)</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-bar me-2 text-danger"></i>10 Kategori Rejection Tertinggi (Kg & %)</h6>
                                 <canvas id="topProblemChart" style="max-height: 220px;"></canvas>
                             </div>
                         </div>
@@ -625,7 +625,6 @@
                 return;
             }
 
-            // Mengambil laporan terbaru sebagai acuan header
             let latestReport = history[0];
             let header = latestReport.header || {};
 
@@ -640,7 +639,6 @@
             const machineInfo = kpiTargets[header.namaMesin] || { target: 6.0, desc: "≤ 6.0%" };
             const maxThreshold = machineInfo.target;
 
-            // Format Tanggal Lengkap
             let rawDate = header.tanggal || new Date().toISOString().split('T')[0];
             let formattedDate = rawDate;
             try {
@@ -667,12 +665,10 @@
             let totalShiftMaterial = 0;
             let totalShiftReject = 0;
 
-            // Mengumpulkan seluruh item dan menggabungkan problem dari laporan dengan tanggal & shift yang sama
             let consolidatedItems = {};
             
             history.forEach(report => {
                 let h = report.header || {};
-                // Jika tanggal, shift, dan mesin sama, gabungkan item dan problemnya
                 if (h.tanggal === header.tanggal && h.shift === header.shift && h.namaMesin === header.namaMesin) {
                     (report.items || []).forEach(item => {
                         let itemName = item.namaItem || 'Produk';
@@ -1637,17 +1633,16 @@
                     if (item.compoundList && item.compoundList.length > 0) {
                         compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
                     } else if (comp > 0) {
-                        compDetails = `• Compound Utama: ${comp} Kg`;
+                        compDetails = `• Utama: ${comp} Kg`;
                     }
 
                     let metalDetails = '-';
                     if (item.metalList && item.metalList.length > 0) {
                         metalDetails = item.metalList.map(m => `• ${m.name}: ${m.weight} Kg`).join('<br>');
                     } else if (met > 0) {
-                        metalDetails = `• Metal Insert Utama: ${met} Kg`;
+                        metalDetails = `• Utama: ${met} Kg`;
                     }
 
-                    // Mengubah tulisan "Tot:" menjadi "Total Material:"
                     let materialSummaryHtml = `<small class="text-primary fw-bold">Compound:</small><br>${compDetails}<br><small class="text-info fw-bold">Metal Insert:</small><br>${metalDetails}<br><strong>Total Material: ${totMat.toFixed(1)} Kg</strong>`;
 
                     (item.problems || []).forEach(prob => {
@@ -1725,6 +1720,10 @@
         function renderCharts(factorCounts, topProbMap) {
             const ctxFactor = document.getElementById('factorChart').getContext('2d');
             if(factorChartInstance) factorChartInstance.destroy();
+            
+            let totalAllReject = Object.values(factorCounts).reduce((a, b) => a + b, 0);
+
+            // Grafik Batang Faktor dengan Warna Merah Elegan (#ef4444)
             factorChartInstance = new Chart(ctxFactor, {
                 type: 'bar',
                 data: {
@@ -1732,16 +1731,32 @@
                     datasets: [{
                         label: 'Rejection (Kg)',
                         data: Object.values(factorCounts),
-                        backgroundColor: ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'],
+                        backgroundColor: '#ef4444',
                         borderRadius: 6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let valKg = context.raw || 0;
+                                    let pct = totalAllReject > 0 ? (valKg / totalAllReject) * 100 : 0;
+                                    return ` Rejection: ${valKg.toFixed(1)} Kg (${pct.toFixed(2)}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
             let sortedProbs = Object.entries(topProbMap).sort((a,b) => b[1].kg - a[1].kg).slice(0, 10);
             const ctxTop = document.getElementById('topProblemChart').getContext('2d');
             if(topProblemChartInstance) topProblemChartInstance.destroy();
+
+            // Grafik Batang Horizontal 10 Kategori Tertinggi dengan Warna Merah Elegan (#ef4444)
             topProblemChartInstance = new Chart(ctxTop, {
                 type: 'bar',
                 data: {
@@ -1749,11 +1764,29 @@
                     datasets: [{
                         label: 'Rejection (Kg)',
                         data: sortedProbs.map(item => item[1].kg),
-                        backgroundColor: '#6366f1',
+                        backgroundColor: '#ef4444',
                         borderRadius: 6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    indexAxis: 'y',
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let idx = context.dataIndex;
+                                    let itemData = sortedProbs[idx][1];
+                                    let valKg = itemData.kg;
+                                    let totalMatGlobal = parseFloat(document.getElementById('statTotalMaterial').innerText) || 1;
+                                    let pct = totalMatGlobal > 0 ? (valKg / totalMatGlobal) * 100 : 0;
+                                    return ` Rejection: ${valKg.toFixed(1)} Kg (${pct.toFixed(2)}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -1764,24 +1797,43 @@
 
         function editReport(id) {
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
+            
+            // Mencari laporan berdasarkan ID atau mencocokkan data baris tabel
             let report = history.find(r => r.header.id === id);
-            if(!report) return;
+            
+            // Jika ID tidak langsung ketemu (misal data lama), cari berdasarkan tanggal, shift, dan mesin
+            if(!report) {
+                report = history.find(r => {
+                    const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
+                    return rId === id || id.includes(r.header.tanggal);
+                });
+            }
+
+            if(!report) {
+                alert("Data laporan tidak ditemukan untuk direvisi!");
+                return;
+            }
 
             switchTab('form');
-            document.getElementById('editReportId').value = report.header.id;
+            document.getElementById('editReportId').value = report.header.id || ('REP-' + Date.now());
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-primary me-2"></i>REVISI LAPORAN PRODUKSI EXTRUDER`;
             document.getElementById('formModeBadge').innerText = "Mode Revisi";
             document.getElementById('cancelEditBtn').classList.remove('d-none');
 
-            document.getElementById('tanggal').value = report.header.tanggal;
-            document.getElementById('hari').value = report.header.hari;
-            document.getElementById('shift').value = report.header.shift;
-            document.getElementById('namaMesin').value = report.header.namaMesin;
-            document.getElementById('picName').value = report.header.pic;
+            document.getElementById('tanggal').value = report.header.tanggal || new Date().toISOString().split('T')[0];
+            document.getElementById('hari').value = report.header.hari || '';
+            document.getElementById('shift').value = report.header.shift || '';
+            document.getElementById('namaMesin').value = report.header.namaMesin || '';
+            document.getElementById('picName').value = report.header.pic || '';
 
             document.getElementById('itemBlocksContainer').innerHTML = "";
             itemIndex = 0;
-            (report.items || []).forEach(item => addItemBlock(item));
+            
+            if (report.items && report.items.length > 0) {
+                report.items.forEach(item => addItemBlock(item));
+            } else {
+                addItemBlock();
+            }
         }
 
         let currentDeleteId = null;
