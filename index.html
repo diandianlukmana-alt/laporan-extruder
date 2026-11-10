@@ -448,7 +448,6 @@
         const PDF_USER = "extruderhebat";
         const PDF_PASS = "inoac1234";
 
-        // Daftar Standar Compound
         const DEFAULT_COMPOUNDS = [
             "M-6810 rev4", "M-6022 rev3", "M-6716 rev3", 
             "E-1025", "E-6024", "E-6026", "E-6030", "E-6030 skin/ribbon kecil", 
@@ -1004,7 +1003,6 @@
                 customInput.value = dropdown.value;
                 customInput.required = false;
                 
-                // Jika user memilih compound dari dropdown, tambahkan ke list master lokal jika belum ada
                 if (dropdown.value && !dynamicMasterCompounds.includes(dropdown.value)) {
                     dynamicMasterCompounds.push(dropdown.value);
                     saveLocalMaterialMasters();
@@ -1633,7 +1631,7 @@
                                 <td>
                                     <span class="badge bg-secondary mb-1">${h.shift}</span><br>
                                     <strong>${h.namaMesin}</strong><br>
-                                    <small class="text-muted">${formatTanggalIndo(h.tanggal)}</small><br>
+                                    <small class="text-muted fw-bold">${formatTanggalIndo(h.tanggal)}</small><br>
                                     <small class="text-dark fw-bold">PIC: ${h.pic || '-'}</small>
                                 </td>
                                 <td class="fw-bold text-dark">${item.namaItem}</td>
