@@ -110,7 +110,6 @@
         .table-custom th { background: linear-gradient(135deg, #312e81 0%, #3730a3 100%) !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; }
         .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
-        /* ================= PROFESSIONAL PRODUCTION REPORT PRINT STYLING ================= */
         @media print {
             body { background: #ffffff !important; color: #000000 !important; font-size: 10pt; padding: 0 !important; }
             .navbar, .modal, .no-print, .btn, .glass-card > div:first-child, .row.g-3.mb-4.bg-light, .row.g-3.align-items-end { display: none !important; }
@@ -148,7 +147,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top mb-4">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
@@ -165,7 +163,6 @@
         </div>
     </nav>
 
-    <!-- MODAL PROTEKSI PASSWORD PDF -->
     <div class="modal fade" id="pdfAuthModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -195,7 +192,6 @@
     </div>
 
     <div class="container-fluid container-fluid-custom">
-        <!-- TAB 1: FORM INPUT -->
         <div id="section-form" class="row justify-content-center">
             <div class="col-lg-11">
                 <div class="glass-card p-3 p-md-5 mb-4">
@@ -267,12 +263,10 @@
             </div>
         </div>
 
-        <!-- TAB 2: DASHBOARD & RIWAYAT -->
         <div id="section-history" class="row justify-content-center d-none">
             <div class="col-lg-12">
                 <div class="glass-card p-3 p-md-5 mb-4">
                     
-                    <!-- KOP LAPORAN KHUSUS PRINT / PDF -->
                     <div class="print-header">
                         <h3>PT. INOAC POLYTECHNO INDONESIA</h3>
                         <h5>DEPARTMENT AUTOSEAL EXTRUDER • PLANT TANGERANG, PASAR KEMIS</h5>
@@ -288,6 +282,7 @@
                             <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openPdfAuthModal()"><i class="fa-solid fa-file-pdf me-1"></i> Cetak / PDF</button>
                             <button class="btn btn-outline-success btn-sm fw-bold" onclick="sendReportToWhatsApp()"><i class="fa-brands fa-whatsapp me-1"></i> Kirim ke WA</button>
                             <button class="btn btn-outline-success btn-sm fw-bold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
+                            <a href="https://docs.google.com/spreadsheets/d/1ppzavb4nWTeQgBv3oqVPDOM6ktMHu2TnseJqn-9_SCI/edit?usp=sharing" target="_blank" class="btn btn-outline-success btn-sm fw-bold"><i class="fa-solid fa-file-excel me-1"></i> Buka Database Sheets</a>
                             <button class="btn btn-outline-danger btn-sm fw-bold" id="btnDeleteAll" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
                         </div>
                     </div>
@@ -347,6 +342,15 @@
                             <input type="date" id="filterEndDate" class="form-control" onchange="renderHistoryTable()">
                         </div>
                         <div class="col-md-2 col-6">
+                            <label class="form-label small fw-bold text-dark">Shift</label>
+                            <select id="filterShift" class="form-select" onchange="renderHistoryTable()">
+                                <option value="">Semua Shift</option>
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
+                                <option value="Shift 3">Shift 3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-dark">Mesin</label>
                             <select id="filterMachine" class="form-select" onchange="renderHistoryTable()">
                                 <option value="">Semua Mesin</option>
@@ -369,8 +373,8 @@
                                 <option value="">Semua Problem</option>
                             </select>
                         </div>
-                        <div class="col-md-2 col-6">
-                            <button class="btn btn-secondary w-100 fw-bold" onclick="resetFilter()"><i class="fa-solid fa-rotate-left me-1"></i> Reset</button>
+                        <div class="col-12 text-end mt-2">
+                            <button class="btn btn-secondary btn-sm fw-bold px-4" onclick="resetFilter()"><i class="fa-solid fa-rotate-left me-1"></i> Reset Filter</button>
                         </div>
                     </div>
 
@@ -400,7 +404,6 @@
         </div>
     </div>
 
-    <!-- MODAL GAMBAR & DELETE -->
     <div class="modal fade" id="imageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
@@ -445,10 +448,18 @@
         const PDF_USER = "extruderhebat";
         const PDF_PASS = "inoac1234";
 
+        // Daftar Standar Compound
+        const DEFAULT_COMPOUNDS = [
+            "M-6810 rev4", "M-6022 rev3", "M-6716 rev3", 
+            "E-1025", "E-6024", "E-6026", "E-6030", "E-6030 skin/ribbon kecil", 
+            "E-6614", "E-6714", "E-6715", "E-6715 skin/ribbon kecil", 
+            "E-6715 T1", "E-6812", "E-6902"
+        ];
+
         let pdfAuthModalInstance = null;
         let dynamicMasterItems = [];
         let dynamicCategories = [];
-        let dynamicMasterCompounds = [];
+        let dynamicMasterCompounds = [...DEFAULT_COMPOUNDS];
         let dynamicMasterMetals = [];
 
         let itemIndex = 0;
@@ -552,7 +563,6 @@
 
             let totalShiftMaterial = 0;
             let totalShiftReject = 0;
-
             let consolidatedItems = {};
             
             history.forEach(report => {
@@ -657,7 +667,8 @@
         }
 
         function loadLocalMaterialMasters() {
-            dynamicMasterCompounds = JSON.parse(localStorage.getItem('extruder_master_compounds') || '[]');
+            let savedComps = JSON.parse(localStorage.getItem('extruder_master_compounds') || '[]');
+            dynamicMasterCompounds = [...new Set([...DEFAULT_COMPOUNDS, ...savedComps])];
             dynamicMasterMetals = JSON.parse(localStorage.getItem('extruder_master_metals') || '[]');
         }
 
@@ -726,6 +737,7 @@
 
         function refreshItemDropdown(block) {
             const select = block.querySelector('.item-dropdown');
+            if(!select) return;
             const currentValue = select.value;
             let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Item Produk...</option>`;
             dynamicMasterItems.forEach(item => {
@@ -737,6 +749,7 @@
 
         function refreshCategoryDropdown(pCard) {
             const select = pCard.querySelector('.prob-desc-dropdown');
+            if(!select) return;
             const currentValue = select.value;
             let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Kategori Problem...</option>`;
             dynamicCategories.forEach(cat => {
@@ -748,6 +761,7 @@
 
         function refreshCompoundDropdown(cRow) {
             const select = cRow.querySelector('.comp-name-dropdown');
+            if(!select) return;
             const currentValue = select.value;
             let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Compound...</option>`;
             dynamicMasterCompounds.forEach(comp => {
@@ -759,6 +773,7 @@
 
         function refreshMetalDropdown(mRow) {
             const select = mRow.querySelector('.metal-name-dropdown');
+            if(!select) return;
             const currentValue = select.value;
             let options = `<option value="" disabled ${!currentValue ? 'selected' : ''}>Pilih Metal Insert...</option>`;
             dynamicMasterMetals.forEach(met => {
@@ -830,7 +845,7 @@
                 const selected = (existingData && existingData.namaItem === item) ? 'selected' : '';
                 dropdownOptions += `<option value="${item}" ${selected}>${item}</option>`;
             });
-            dropdownOptions += `<option value="CUSTOM_INPUT">✏️ Ketik Nama Item Lain (Manual)...</option>`;
+            dropdownOptions += `<option value="CUSTOM_INPUT" ${isExistingCustom ? 'selected' : ''}>✏️ Ketik Nama Item Lain (Manual)...</option>`;
 
             const html = `
                 <div class="item-block-card" id="${itemBlockId}" data-item-idx="${currentItemIdx}">
@@ -896,7 +911,7 @@
             if(existingData && existingData.compoundList && existingData.compoundList.length > 0) {
                 existingData.compoundList.forEach(c => addCompoundRow(itemBlockId, c));
             } else if(existingData && existingData.compound) {
-                addCompoundRow(itemBlockId, { name: "Compound Utama", weight: existingData.compound });
+                addCompoundRow(itemBlockId, { name: existingData.compoundName || "M-6810 rev4", weight: existingData.compound });
             } else {
                 addCompoundRow(itemBlockId);
             }
@@ -904,12 +919,12 @@
             if(existingData && existingData.metalList && existingData.metalList.length > 0) {
                 existingData.metalList.forEach(m => addMetalRow(itemBlockId, m));
             } else if(existingData && existingData.metalInsert && parseFloat(existingData.metalInsert) > 0) {
-                addMetalRow(itemBlockId, { name: "Metal Insert Utama", weight: existingData.metalInsert });
+                addMetalRow(itemBlockId, { name: "Metal Insert", weight: existingData.metalInsert });
             } else {
                 addMetalRow(itemBlockId);
             }
 
-            if(existingData && existingData.problems) {
+            if(existingData && existingData.problems && existingData.problems.length > 0) {
                 existingData.problems.forEach(pData => addProblemToItem(itemBlockId, pData));
             } else {
                 addProblemToItem(itemBlockId);
@@ -939,13 +954,13 @@
         function addCompoundRow(itemBlockId, existingComp = null) {
             const container = document.getElementById(`compounds-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
-            const cRowId = `${itemBlockId}-comp-${rowCount}`;
+            const cRowId = `${itemBlockId}-comp-${Date.now()}-${rowCount}`;
 
             const isCustom = existingComp && !dynamicMasterCompounds.includes(existingComp.name);
             const customDisplay = isCustom ? "block" : "none";
             const customVal = isCustom ? existingComp.name : "";
 
-            let compOptions = `<option value="" disabled ${!existingComp ? 'selected' : ''}>Pilih Jenis Compound...</option>`;
+            let compOptions = `<option value="" disabled ${!existingComp ? 'selected' : ''}>Pilih Compound...</option>`;
             dynamicMasterCompounds.forEach(c => {
                 const selected = (existingComp && existingComp.name === c) ? 'selected' : '';
                 compOptions += `<option value="${c}" ${selected}>${c}</option>`;
@@ -967,7 +982,7 @@
                         </div>
                     </div>
                     <div class="col-md-1 text-end">
-                        ${rowCount > 1 ? `<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSubRow('${cRowId}', '${itemBlockId}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${container.children.length > 0 ? `<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSubRow('${cRowId}', '${itemBlockId}')"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 </div>
             `;
@@ -988,19 +1003,25 @@
                 customInput.style.display = "none";
                 customInput.value = dropdown.value;
                 customInput.required = false;
+                
+                // Jika user memilih compound dari dropdown, tambahkan ke list master lokal jika belum ada
+                if (dropdown.value && !dynamicMasterCompounds.includes(dropdown.value)) {
+                    dynamicMasterCompounds.push(dropdown.value);
+                    saveLocalMaterialMasters();
+                }
             }
         }
 
         function addMetalRow(itemBlockId, existingMetal = null) {
             const container = document.getElementById(`metals-container-${itemBlockId}`);
             const rowCount = container.children.length + 1;
-            const mRowId = `${itemBlockId}-metal-${rowCount}`;
+            const mRowId = `${itemBlockId}-metal-${Date.now()}-${rowCount}`;
 
             const isCustom = existingMetal && !dynamicMasterMetals.includes(existingMetal.name);
             const customDisplay = isCustom ? "block" : "none";
             const customVal = isCustom ? existingMetal.name : "";
 
-            let metalOptions = `<option value="" disabled ${!existingMetal ? 'selected' : ''}>Pilih Jenis Metal Insert...</option>`;
+            let metalOptions = `<option value="" disabled ${!existingMetal ? 'selected' : ''}>Pilih Metal Insert...</option>`;
             dynamicMasterMetals.forEach(m => {
                 const selected = (existingMetal && existingMetal.name === m) ? 'selected' : '';
                 metalOptions += `<option value="${m}" ${selected}>${m}</option>`;
@@ -1043,6 +1064,11 @@
                 customInput.style.display = "none";
                 customInput.value = dropdown.value;
                 customInput.required = false;
+
+                if (dropdown.value && dropdown.value !== "CUSTOM_INPUT" && !dynamicMasterMetals.includes(dropdown.value)) {
+                    dynamicMasterMetals.push(dropdown.value);
+                    saveLocalMaterialMasters();
+                }
             }
         }
 
@@ -1054,7 +1080,7 @@
         function addProblemToItem(itemBlockId, existingProb = null) {
             const problemsContainer = document.getElementById(`problems-container-${itemBlockId}`);
             const probCount = problemsContainer.children.length + 1;
-            const probCardId = `${itemBlockId}-prob-${probCount}`;
+            const probCardId = `${itemBlockId}-prob-${Date.now()}-${probCount}`;
 
             const isCustomDesc = existingProb && !dynamicCategories.includes(existingProb.problemDesc);
             const descInputDisplay = isCustomDesc ? "block" : "none";
@@ -1070,8 +1096,8 @@
             const html = `
                 <div class="problem-item-card" id="${probCardId}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-secondary fw-bold">Problem #${probCount}</span>
-                        ${probCount > 1 ? `<button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none fw-bold" onclick="removeProblemCard('${probCardId}')"><i class="fa-solid fa-xmark"></i> Hapus</button>` : ''}
+                        <span class="badge bg-secondary fw-bold problem-index-badge">Problem #${probCount}</span>
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none fw-bold" onclick="removeProblemCard('${probCardId}')"><i class="fa-solid fa-xmark"></i> Hapus Problem</button>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-3">
@@ -1094,7 +1120,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label micro-label fw-bold text-dark">Jumlah Rejection (Kg)</label>
-                            <input type="number" step="0.1" min="0" class="form-control prob-reject-kg" placeholder="0" value="${existingProb ? existingProb.rejectionKg : ''}" required>
+                            <input type="number" step="0.1" min="0" class="form-control prob-reject-kg" placeholder="0" value="${existingProb ? existingProb.rejectionKg : ''}" oninput="calculateItemTotals('${itemBlockId}')" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label micro-label fw-bold text-dark">Persentase Reject (%)</label>
@@ -1166,6 +1192,8 @@
                 addFollowUpRow(probCardId);
                 addTindakanRow(probCardId);
             }
+            calculateItemTotals(itemBlockId);
+            reindexProblems(itemBlockId);
         }
 
         function handleProblemDropdownChange(probCardId) {
@@ -1185,17 +1213,35 @@
         }
 
         function removeProblemCard(probCardId) {
-            document.getElementById(probCardId)?.remove();
+            const card = document.getElementById(probCardId);
+            if(card) {
+                const itemBlock = card.closest('.item-block-card');
+                card.remove();
+                if(itemBlock) {
+                    reindexProblems(itemBlock.id);
+                    calculateItemTotals(itemBlock.id);
+                }
+            }
+        }
+
+        function reindexProblems(itemBlockId) {
+            const block = document.getElementById(itemBlockId);
+            if(!block) return;
+            const probCards = block.querySelectorAll('.problem-item-card');
+            probCards.forEach((card, idx) => {
+                const badge = card.querySelector('.problem-index-badge');
+                if(badge) badge.innerText = `Problem #${idx + 1}`;
+            });
         }
 
         function addAnalisaRow(probCardId, val = "") {
             const container = document.querySelector(`#${probCardId} .analisa-container`);
             const count = container.children.length + 1;
-            const rowId = `${probCardId}-analisa-${count}`;
+            const rowId = `${probCardId}-analisa-${Date.now()}-${count}`;
             const html = `
                 <div class="input-group input-group-sm" id="${rowId}">
                     <input type="text" class="form-control analisa-input" placeholder="Tulis analisa..." value="${val}">
-                    ${count > 1 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                    ${container.children.length > 0 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -1204,11 +1250,11 @@
         function addFollowUpRow(probCardId, val = "") {
             const container = document.querySelector(`#${probCardId} .followup-container`);
             const count = container.children.length + 1;
-            const rowId = `${probCardId}-followup-${count}`;
+            const rowId = `${probCardId}-followup-${Date.now()}-${count}`;
             const html = `
                 <div class="input-group input-group-sm" id="${rowId}">
                     <input type="text" class="form-control followup-input" placeholder="Tulis follow up..." value="${val}">
-                    ${count > 1 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                    ${container.children.length > 0 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -1217,11 +1263,11 @@
         function addTindakanRow(probCardId, val = "") {
             const container = document.querySelector(`#${probCardId} .tindakan-container`);
             const count = container.children.length + 1;
-            const rowId = `${probCardId}-tindakan-${count}`;
+            const rowId = `${probCardId}-tindakan-${Date.now()}-${count}`;
             const html = `
                 <div class="input-group input-group-sm" id="${rowId}">
                     <input type="text" class="form-control tindakan-input" placeholder="Tulis tindakan improvement..." value="${val}">
-                    ${count > 1 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                    ${container.children.length > 0 ? `<button type="button" class="btn btn-outline-danger" onclick="document.getElementById('${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>` : ''}
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -1283,6 +1329,8 @@
 
         function calculateItemTotals(itemBlockId) {
             const block = document.getElementById(itemBlockId);
+            if(!block) return;
+
             let totComp = 0;
             block.querySelectorAll('.comp-weight-input').forEach(inp => {
                 totComp += parseFloat(inp.value) || 0;
@@ -1294,14 +1342,24 @@
             });
 
             const totMat = totComp + totMetal;
-            block.querySelector('.total-compound-summary').value = `${totComp.toFixed(1)} Kg`;
-            block.querySelector('.total-metal-summary').value = `${totMetal.toFixed(1)} Kg`;
-            block.querySelector('.item-total-material').value = `${totMat.toFixed(1)} Kg`;
+            
+            const compSummary = block.querySelector('.total-compound-summary');
+            const metalSummary = block.querySelector('.total-metal-summary');
+            const totalMatSummary = block.querySelector('.item-total-material');
+
+            if(compSummary) compSummary.value = `${totComp.toFixed(1)} Kg`;
+            if(metalSummary) metalSummary.value = `${totMetal.toFixed(1)} Kg`;
+            if(totalMatSummary) totalMatSummary.value = `${totMat.toFixed(1)} Kg`;
 
             block.querySelectorAll('.problem-item-card').forEach(pCard => {
-                const rejKg = parseFloat(pCard.querySelector('.prob-reject-kg').value) || 0;
-                const pct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
-                pCard.querySelector('.prob-reject-pct').value = `${pct.toFixed(2)}%`;
+                const rejInput = pCard.querySelector('.prob-reject-kg');
+                const pctInput = pCard.querySelector('.prob-reject-pct');
+                
+                if(rejInput && pctInput) {
+                    const rejKg = parseFloat(rejInput.value) || 0;
+                    const pct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
+                    pctInput.value = `${pct.toFixed(2)}%`;
+                }
             });
         }
 
@@ -1335,7 +1393,12 @@
                     const d = row.querySelector('.comp-name-dropdown');
                     let cName = d.value === "CUSTOM_INPUT" ? row.querySelector('.comp-name-custom').value.trim() : d.value;
                     let cWeight = parseFloat(row.querySelector('.comp-weight-input').value) || 0;
-                    if(cName) compoundList.push({ name: cName, weight: cWeight });
+                    if(cName) {
+                        compoundList.push({ name: cName, weight: cWeight });
+                        if(d.value !== "CUSTOM_INPUT" && !dynamicMasterCompounds.includes(cName)) {
+                            dynamicMasterCompounds.push(cName);
+                        }
+                    }
                 });
 
                 let metalList = [];
@@ -1343,8 +1406,15 @@
                     const d = row.querySelector('.metal-name-dropdown');
                     let mName = d.value === "CUSTOM_INPUT" ? row.querySelector('.metal-name-custom').value.trim() : d.value;
                     let mWeight = parseFloat(row.querySelector('.metal-weight-input').value) || 0;
-                    if(mName && mWeight > 0) metalList.push({ name: mName, weight: mWeight });
+                    if(mName && mWeight > 0) {
+                        metalList.push({ name: mName, weight: mWeight });
+                        if(d.value !== "CUSTOM_INPUT" && !dynamicMasterMetals.includes(mName)) {
+                            dynamicMasterMetals.push(mName);
+                        }
+                    }
                 });
+
+                saveLocalMaterialMasters();
 
                 let totComp = compoundList.reduce((acc, cur) => acc + cur.weight, 0);
                 let totMetal = metalList.reduce((acc, cur) => acc + cur.weight, 0);
@@ -1460,14 +1530,18 @@
             
             const startD = document.getElementById('filterStartDate').value;
             const endD = document.getElementById('filterEndDate').value;
+            const shiftF = document.getElementById('filterShift').value;
             const mach = document.getElementById('filterMachine').value;
             const itemF = document.getElementById('filterItem').value;
             const probF = document.getElementById('filterProblemDesc').value;
 
             let filtered = history.filter(r => {
                 let match = true;
-                if(startD && r.header.tanggal < startD) match = false;
-                if(endD && r.header.tanggal > endD) match = false;
+                let reportDate = r.header.tanggal ? r.header.tanggal.split('T')[0] : '';
+                
+                if(startD && reportDate < startD) match = false;
+                if(endD && reportDate > endD) match = false;
+                if(shiftF && r.header.shift !== shiftF) match = false;
                 if(mach && r.header.namaMesin !== mach) match = false;
                 if(itemF && !r.items.some(i => i.namaItem === itemF)) match = false;
                 if(probF && !r.items.some(i => i.problems.some(p => p.problemDesc === probF))) match = false;
@@ -1745,21 +1819,18 @@
 
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(deleteTargetAction === "single") {
-                // Menghapus laporan berdasarkan id unik atau indeks pencocokan
                 history = history.filter(r => {
                     const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
                     return rId !== currentDeleteId;
                 });
                 localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
-                alert("Laporan berhasil dihapus dari dashboard.");
+                alert("Laporan berhasil dihapus.");
             } else if(deleteTargetAction === "all") {
                 localStorage.removeItem('extruder_reports_v7');
                 alert("Semua riwayat laporan berhasil dihapus.");
             }
 
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-            
-            // Paksa render ulang tabel dan grafik seketika
             renderHistoryTable();
         }
 
@@ -1778,6 +1849,7 @@
         function resetFilter() {
             document.getElementById('filterStartDate').value = "";
             document.getElementById('filterEndDate').value = "";
+            document.getElementById('filterShift').value = "";
             document.getElementById('filterMachine').value = "";
             document.getElementById('filterItem').value = "";
             document.getElementById('filterProblemDesc').value = "";
