@@ -642,10 +642,22 @@
             const machineInfo = kpiTargets[header.namaMesin] || { target: 6.0, desc: "≤ 6.0%" };
             const maxThreshold = machineInfo.target;
 
+            // Format tanggal lengkap (contoh: Selasa, 10 November 2026)
+            let formattedDate = header.tanggal;
+            try {
+                const parts = header.tanggal.split('-');
+                if (parts.length === 3) {
+                    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                    formattedDate = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            } catch(e) {
+                formattedDate = `${header.tanggal} (${header.hari})`;
+            }
+
             let waText = `📋 *PT. INOAC POLYTECHNO INDONESIA*\n`;
             waText += `🏭 *Autoseal Extruder Report*\n`;
             waText += `──────────────────────\n`;
-            waText += `📅 *Tanggal:* ${header.tanggal} (${header.hari})\n`;
+            waText += `📅 *Tanggal:* ${formattedDate}\n`;
             waText += `⏰ *Shift:* ${header.shift}\n`;
             waText += `⚙️ *Mesin:* ${header.namaMesin} (Target KPI: *${machineInfo.desc}*)\n`;
             waText += `👤 *PIC:* ${header.pic || 'Extruderautoseal'}\n`;
