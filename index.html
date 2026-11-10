@@ -442,7 +442,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCqSIJbiqBey6pAIYHmVb3BXh8r82F1_xCc2Ui5s9MH5-phvzRzTmlU7X8x6z6cuXXMg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcYYiaAQgPaoI6WxFsn56vuhAkxEYngGV1QbXy25z9le-gp--zZ23ZM3sKgrV53JvAXg/exec"; 
         
         const DELETE_PASSWORD = "hapus1234";
         const PDF_USER = "extruderhebat";
@@ -790,10 +790,11 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
+        // Format tanggal bersih tanpa teks GMT/jam
         function formatTanggalIndo(dateStr) {
             if (!dateStr) return '-';
             try {
-                const cleanDate = String(dateStr).split('T')[0];
+                const cleanDate = String(dateStr).split('T')[0].split(' ')[0];
                 const parts = cleanDate.split('-');
                 if (parts.length === 3) {
                     const d = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -1535,10 +1536,24 @@
 
             let filtered = history.filter(r => {
                 let match = true;
-                let reportDate = r.header.tanggal ? r.header.tanggal.split('T')[0] : '';
+                let rawDate = r.header.tanggal ? r.header.tanggal.split('T')[0] : '';
                 
-                if(startD && reportDate < startD) match = false;
-                if(endD && reportDate > endD) match = false;
+                if (rawDate && (startD || endD)) {
+                    let rDateObj = new Date(rawDate);
+                    rDateObj.setHours(0, 0, 0, 0);
+
+                    if (startD) {
+                        let startObj = new Date(startD);
+                        startObj.setHours(0, 0, 0, 0);
+                        if (rDateObj < startObj) match = false;
+                    }
+                    if (endD) {
+                        let endObj = new Date(endD);
+                        endObj.setHours(0, 0, 0, 0);
+                        if (rDateObj > endObj) match = false;
+                    }
+                }
+
                 if(shiftF && r.header.shift !== shiftF) match = false;
                 if(mach && r.header.namaMesin !== mach) match = false;
                 if(itemF && !r.items.some(i => i.namaItem === itemF)) match = false;
@@ -1589,6 +1604,7 @@
                         countedReportIds.add(uniqueMaterialKey);
                     }
 
+                    // Perbaikan pembacaan compoundList spesifik agar menampilkan nama compound asli (misal: E-6812)
                     let compDetails = '-';
                     if (item.compoundList && item.compoundList.length > 0) {
                         compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
@@ -1631,7 +1647,7 @@
                                 <td>
                                     <span class="badge bg-secondary mb-1">${h.shift}</span><br>
                                     <strong>${h.namaMesin}</strong><br>
-                                    <small class="text-muted fw-bold">${formatTanggalIndo(h.tanggal)}</small><br>
+                                    <small class="text-primary fw-bold"><i class="fa-solid fa-calendar-days me-1"></i>${formatTanggalIndo(h.tanggal)}</small><br>
                                     <small class="text-dark fw-bold">PIC: ${h.pic || '-'}</small>
                                 </td>
                                 <td class="fw-bold text-dark">${item.namaItem}</td>
