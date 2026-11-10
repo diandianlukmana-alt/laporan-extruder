@@ -124,6 +124,41 @@
         .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
         .history-mobile-card { background: #ffffff; border: 1px solid #818cf8; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; }
+
+        /* ================= PROFESSIONAL PRODUCTION REPORT PRINT STYLING ================= */
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; font-size: 10pt; padding: 0 !important; }
+            .navbar, .modal, .no-print, .btn, .glass-card > div:first-child, .row.g-3.mb-4.bg-light, .row.g-3.align-items-end { display: none !important; }
+            .glass-card { border: none !important; box-shadow: none !important; background: #ffffff !important; padding: 0 !important; margin: 0 !important; }
+            #section-history { display: block !important; width: 100% !important; }
+            .table-responsive { max-height: none !important; overflow: visible !important; }
+            
+            .print-header {
+                display: block !important;
+                border-bottom: 3px double #000000;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                text-align: center;
+            }
+            .print-header h3 { font-size: 16pt; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; color: #000 !important; }
+            .print-header h5 { font-size: 12pt; font-weight: 700; margin-bottom: 2px; color: #333 !important; }
+            .print-header p { font-size: 9pt; margin-bottom: 0; color: #555 !important; }
+
+            .table-custom th {
+                background: #222222 !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-size: 9.5pt;
+            }
+            .table-custom td {
+                font-size: 9pt;
+                padding: 5px !important;
+                color: #000000 !important;
+            }
+            .table-img-thumb { width: 40px; height: 40px; border: 1px solid #000; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
@@ -173,6 +208,35 @@
         </div>
     </div>
 
+    <!-- MODAL PROTEKSI PASSWORD PDF -->
+    <div class="modal fade" id="pdfAuthModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-dark text-white rounded-top-4 py-3">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-pdf me-2"></i>Verifikasi Akses Cetak / Unduh PDF</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-dark small fw-semibold mb-3">Masukkan kredensial khusus untuk membuka dan mengunduh laporan berformat PDF resmi:</p>
+                    <div id="pdfAuthAlert" class="alert alert-danger d-none py-2 small fw-bold" role="alert"></div>
+                    <form id="pdfAuthForm" onsubmit="executePdfPrint(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Username PDF</label>
+                            <input type="text" id="pdfUsername" class="form-control" placeholder="Masukkan username..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Password PDF</label>
+                            <input type="password" id="pdfPassword" class="form-control" placeholder="Masukkan password..." required>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-dark py-2 fw-bold"><i class="fa-solid fa-print me-2"></i>Verifikasi & Buka Dokumen PDF</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid container-fluid-custom">
         <!-- TAB 1: FORM INPUT -->
         <div id="section-form" class="row justify-content-center">
@@ -181,7 +245,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
                         <div>
                             <h3 class="fw-bold mb-1 text-dark fs-4" id="formTitle"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>LAPORAN PROBLEM PRODUKSI EXTRUDER</h3>
-                            <p class="text-dark fw-semibold small mb-0">Isi data header shift, PIC, pemakaian material, kategori problem, analisa, follow-up, tindakan, dan multi-foto.</p>
+                            <p class="text-dark fw-semibold small mb-0">PT. INOAC POLYTECHNO INDONESIA • Department Autoseal Extruder • Plant Tangerang, Pasar Kemis</p>
                         </div>
                         <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold" id="formModeBadge">Input Baru</span>
                     </div>
@@ -250,19 +314,28 @@
         <div id="section-history" class="row justify-content-center d-none">
             <div class="col-lg-12">
                 <div class="glass-card p-3 p-md-5 mb-4">
+                    
+                    <!-- KOP LAPORAN KHUSUS PRINT / PDF -->
+                    <div class="print-header">
+                        <h3>PT. INOAC POLYTECHNO INDONESIA</h3>
+                        <h5>DEPARTMENT AUTOSEAL EXTRUDER • PLANT TANGERANG, PASAR KEMIS</h5>
+                        <p><strong>PRODUCTION REPORT PROBLEM & REJECTION ANALYSIS</strong></p>
+                    </div>
+
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
                         <div>
                             <h3 class="fw-bold mb-1 text-dark fs-4"><i class="fa-solid fa-chart-line text-primary me-2"></i>Dashboard & Riwayat Laporan Extruder</h3>
-                            <p class="text-dark fw-bold small mb-0">KPI PRODUCTION EXTRUDER AUTOSEAL (Auto-Refresh Setiap 30 Detik)</p>
+                            <p class="text-dark fw-bold small mb-0">PT. INOAC POLYTECHNO INDONESIA (Auto-Refresh Setiap 30 Detik)</p>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button class="btn btn-outline-primary btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Cetak / PDF</button>
+                        <div class="d-flex gap-2 flex-wrap no-print">
+                            <button class="btn btn-outline-primary btn-sm fw-bold" onclick="openPdfAuthModal()"><i class="fa-solid fa-file-pdf me-1"></i> Cetak / PDF</button>
+                            <button class="btn btn-outline-success btn-sm fw-bold" onclick="sendReportToWhatsApp()"><i class="fa-brands fa-whatsapp me-1"></i> Kirim ke WA</button>
                             <button class="btn btn-outline-success btn-sm fw-bold" onclick="exportToCSV()"><i class="fa-solid fa-file-csv me-1"></i> Ekspor CSV</button>
                             <button class="btn btn-outline-danger btn-sm fw-bold" id="btnDeleteAll" onclick="openDeleteAllModal()"><i class="fa-solid fa-trash me-1"></i> Hapus Semua</button>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4 no-print">
                         <div class="col-6 col-md-3">
                             <div class="p-3 bg-white rounded border shadow-sm border-start border-4 border-info">
                                 <span class="text-dark fw-bold small d-block">KPI TARGET KESELURUHAN</span>
@@ -292,7 +365,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-4 mb-4">
+                    <div class="row g-4 mb-4 no-print">
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border shadow-sm">
                                 <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-column me-2"></i>Akumulasi Rejection Berdasarkan Faktor</h6>
@@ -307,7 +380,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded border">
+                    <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded border no-print">
                         <div class="col-md-2 col-6">
                             <label class="form-label small fw-bold text-dark">Dari Tanggal</label>
                             <input type="date" id="filterStartDate" class="form-control" onchange="renderHistoryTable()">
@@ -353,7 +426,7 @@
                                     <th>Item Produk</th>
                                     <th>Material (Kg)</th>
                                     <th>Faktor & Problem</th>
-                                    <th>Rejection & KPI</th>
+                                    <th>Rejection & Indikator KPI</th>
                                     <th>Analisa & Follow Up</th>
                                     <th>Tindakan Improvement</th>
                                     <th>Foto Bukti</th>
@@ -363,7 +436,7 @@
                         </table>
                     </div>
 
-                    <div class="mobile-card-view" id="historyCardBodyMobile"></div>
+                    <div class="mobile-card-view no-print" id="historyCardBodyMobile"></div>
 
                 </div>
             </div>
@@ -409,14 +482,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWOM7c63f1F3GPeUXGC9nMMO6y1hIHY7-OBXLUNI1mJTQ-XvegMcxVZg7rNn-6PR8aow/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCqSIJbiqBey6pAIYHmVb3BXh8r82F1_xCc2Ui5s9MH5-phvzRzTmlU7X8x6z6cuXXMg/exec"; 
         
-        // Kredensial 1 User Tunggal
+        // Kredensial 1 User Tunggal & PDF Auth
         const LOGIN_USERNAME = "Extruderautoseal";
         const LOGIN_PASSWORD = "inoac1234";
         const DELETE_PASSWORD = "hapus1234";
+        const PDF_USER = "extruderhebat";
+        const PDF_PASS = "inoac1234";
 
         let loginModalInstance = null;
+        let pdfAuthModalInstance = null;
         let dynamicMasterItems = [];
         let dynamicCategories = [];
         let dynamicMasterCompounds = [];
@@ -430,6 +506,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             loginModalInstance = new bootstrap.Modal(document.getElementById('loginModal'));
+            pdfAuthModalInstance = new bootstrap.Modal(document.getElementById('pdfAuthModal'));
             checkActiveSession();
 
             loadLocalMaterialMasters();
@@ -450,16 +527,13 @@
             const deviceId = getDeviceId();
 
             if (isLogged === "true") {
-                // Periksa apakah sesi aktif di perangkat lain
                 if (activeDevice && activeDevice !== deviceId) {
-                    // Batalkan sesi dan tampilkan login dengan pesan
                     localStorage.removeItem('extruder_is_logged');
                     loginModalInstance.show();
                     const alertBox = document.getElementById('loginAlertBox');
                     alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
                     alertBox.classList.remove('d-none');
                 } else {
-                    // Sesi valid di perangkat ini
                     localStorage.setItem('extruder_active_device', deviceId);
                 }
             } else {
@@ -488,7 +562,6 @@
             const alertBox = document.getElementById('loginAlertBox');
             const deviceId = getDeviceId();
 
-            // Cek apakah sedang aktif di perangkat lain
             const activeDevice = localStorage.getItem('extruder_active_device');
             if (activeDevice && activeDevice !== deviceId) {
                 alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
@@ -512,6 +585,92 @@
             localStorage.removeItem('extruder_is_logged');
             localStorage.removeItem('extruder_active_device');
             location.reload();
+        }
+
+        function openPdfAuthModal() {
+            document.getElementById('pdfUsername').value = '';
+            document.getElementById('pdfPassword').value = '';
+            document.getElementById('pdfAuthAlert').classList.add('d-none');
+            pdfAuthModalInstance.show();
+        }
+
+        function executePdfPrint(event) {
+            event.preventDefault();
+            const uInput = document.getElementById('pdfUsername').value.trim();
+            const pInput = document.getElementById('pdfPassword').value.trim();
+            const alertBox = document.getElementById('pdfAuthAlert');
+
+            if (uInput !== PDF_USER || pInput !== PDF_PASS) {
+                alertBox.innerText = "Username atau Password PDF salah!";
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            pdfAuthModalInstance.hide();
+
+            // Penamaan File PDF otomatis berdasarkan Tanggal & Shift laporan terakhir atau filter aktif
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
+            if (history.length > 0) {
+                let latest = history[0];
+                let tgl = latest.header.tanggal || new Date().toISOString().split('T')[0];
+                let shf = (latest.header.shift || 'Shift-1').replace(/\s+/g, '-');
+                document.title = `Laporan_Extruder_${tgl}_${shf}`;
+            } else {
+                document.title = `Laporan_Extruder_Produksi`;
+            }
+
+            window.print();
+        }
+
+        function sendReportToWhatsApp() {
+            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
+            if (history.length === 0) {
+                alert("Belum ada data laporan untuk dikirim ke WhatsApp!");
+                return;
+            }
+
+            let report = history[0];
+            let header = report.header;
+
+            let waText = `📋 *PT. INOAC POLYTECHNO INDONESIA*\n`;
+            waText += `🏭 *Autoseal Extruder Report*\n`;
+            waText += `──────────────────────\n`;
+            waText += `📅 *Tanggal:* ${header.tanggal} (${header.hari})\n`;
+            waText += `⏰ *Shift:* ${header.shift}\n`;
+            waText += `⚙️ *Mesin:* ${header.namaMesin}\n`;
+            waText += `👤 *PIC:* ${header.pic || 'Extruderautoseal'}\n`;
+            waText += `──────────────────────\n\n`;
+
+            const kpiTargets = { "LINE 1": 6.0, "LINE 2": 6.5, "LINE 3": 6.0, "LINE 4": 7.0, "FLOKLES": 1.5 };
+            const maxThreshold = kpiTargets[header.namaMesin] || 6.0;
+
+            (report.items || []).forEach((item, idx) => {
+                waText += `📦 *Item #${idx+1}: ${item.namaItem}*\n`;
+                let comp = parseFloat(item.compound) || 0;
+                let met = parseFloat(item.metalInsert) || 0;
+                let totMat = comp + met;
+                waText += `🔹 Total Material: ${totMat.toFixed(1)} Kg\n`;
+                
+                (item.problems || []).forEach((prob, pIdx) => {
+                    let rejKg = parseFloat(prob.rejectionKg) || 0;
+                    let rejPct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
+                    let isOk = rejPct <= maxThreshold;
+                    let statusLabel = isOk ? "✅ OK (Tercapai)" : "❌ NG (Tidak Tercapai)";
+
+                    waText += `   ⚠️ *Problem ${pIdx+1} (${prob.faktor}):* ${prob.problemDesc}\n`;
+                    waText += `   ❌ *Reject:* ${rejKg} Kg (${rejPct.toFixed(2)}%)\n`;
+                    waText += `   📌 *Status:* ${statusLabel}\n`;
+                    waText += `   🔍 *Analisa:* ${(prob.analisaList || []).join('; ')}\n`;
+                    waText += `   💡 *Tindakan:* ${(prob.tindakanList || []).join('; ')}\n`;
+                });
+                waText += `\n`;
+            });
+
+            waText += `_Laporan dikirim otomatis via Web System Extruder Autoseal_`;
+
+            let encodedText = encodeURIComponent(waText);
+            let waUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+            window.open(waUrl, '_blank');
         }
 
         function startAutoRefresh() {
@@ -1298,6 +1457,10 @@
 
             let processedRows = [];
             filteredHistory.forEach(report => {
+                const machine = report.header.namaMesin;
+                const kpiTargets = { "LINE 1": 6.0, "LINE 2": 6.5, "LINE 3": 6.0, "LINE 4": 7.0, "FLOKLES": 1.5 };
+                const maxThreshold = kpiTargets[machine] || 6.0;
+
                 (report.items || []).forEach(item => {
                     if (filterItem && item.namaItem !== filterItem) return;
                     const comp = parseFloat(item.compound) || 0;
@@ -1306,7 +1469,10 @@
 
                     (item.problems || []).forEach(prob => {
                         if (filterProblemDesc && prob.problemDesc !== filterProblemDesc) return;
-                        processedRows.push({ report, item, prob, totMat });
+                        const rejKg = parseFloat(prob.rejectionKg) || 0;
+                        const rejPct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
+                        const isOk = rejPct <= maxThreshold;
+                        processedRows.push({ report, item, prob, totMat, isOk, rejPct });
                     });
                 });
             });
@@ -1358,6 +1524,9 @@
 
                 const picName = report.header.pic || "Extruderautoseal";
                 const formattedDate = formatTanggalIndo(report.header.tanggal);
+                const indicatorBadge = row.isOk 
+                    ? `<span class="badge bg-success text-white fw-bold">OK 🎉 (Tercapai)</span>` 
+                    : `<span class="badge bg-danger text-white fw-bold">NG ⚠️ (Tidak Tercapai)</span>`;
 
                 let actionButtons = `
                     <button class="btn btn-sm btn-outline-primary py-0 px-2 mb-1 fw-bold" onclick="editReport('${report.reportId}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -1371,7 +1540,7 @@
                         <td><strong class="text-dark">${item.namaItem}</strong></td>
                         <td><small class="text-dark fw-semibold">${compDetailText}<br>${metalDetailText}<br><strong>Total: ${totMat.toFixed(1)} Kg</strong></small></td>
                         <td><span class="badge bg-warning text-dark mb-1 fw-bold">${prob.faktor}</span><br><strong class="text-dark">${prob.problemDesc}</strong></td>
-                        <td><span class="text-danger fw-extrabold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span></td>
+                        <td><span class="text-danger fw-extrabold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</span><br>${indicatorBadge}</td>
                         <td><small class="text-dark"><strong>Analisa:</strong> ${(prob.analisaList || []).join('; ')}<br><strong>Follow Up:</strong> ${(prob.followUpList || []).join('; ')}</small></td>
                         <td><small class="text-dark">${(prob.tindakanList || []).join('; ')}</small></td>
                         <td><div class="d-flex flex-wrap">${probImgHtml || '<span class="text-dark small fw-bold">No Prob</span>'}</div><div class="d-flex flex-wrap mt-1">${impImgHtml || '<span class="text-dark small fw-bold">No Imp</span>'}</div></td>
@@ -1405,6 +1574,7 @@
                             <div class="col-6 text-end">
                                 <span class="text-dark fw-bold d-block">Rejection:</span>
                                 <strong class="text-danger fw-bold">${prob.rejectionKg} Kg (${prob.rejectionPercent})</strong>
+                                <div class="mt-1">${indicatorBadge}</div>
                             </div>
                         </div>
 
@@ -1686,6 +1856,10 @@
 
             let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Rincian Compound,Rincian Metal,Total Material (Kg),Faktor,Problem,Rejection (Kg),Rejection (%),Status KPI,Analisa,FollowUp,Tindakan\n";
             history.forEach(report => {
+                const machine = report.header.namaMesin;
+                const kpiTargets = { "LINE 1": 6.0, "LINE 2": 6.5, "LINE 3": 6.0, "LINE 4": 7.0, "FLOKLES": 1.5 };
+                const maxThreshold = kpiTargets[machine] || 6.0;
+
                 (report.items || []).forEach(item => {
                     const comp = parseFloat(item.compound) || 0;
                     const met = parseFloat(item.metalInsert) || 0;
@@ -1695,7 +1869,9 @@
                     const metalStr = (item.metalList || []).map(m => `${m.name}:${m.weight}Kg`).join(';');
 
                     (item.problems || []).forEach(p => {
-                        const statusKpi = (parseFloat(p.rejectionKg) / tot) * 100 <= 6 ? 'OK' : 'NG';
+                        const rejKg = parseFloat(p.rejectionKg) || 0;
+                        const rejPct = tot > 0 ? (rejKg / tot) * 100 : 0;
+                        const statusKpi = rejPct <= maxThreshold ? 'OK' : 'NG';
                         csv += `"${report.reportId}","${report.header.tanggal}","${report.header.hari}","${report.header.shift}","${report.header.namaMesin}","${report.header.pic||''}","${item.namaItem}","${compStr||comp}","${metalStr||met}","${tot}","${p.faktor}","${p.problemDesc}","${p.rejectionKg}","${p.rejectionPercent}","${statusKpi}","${(p.analisaList||[]).join(';')}","${(p.followUpList||[]).join(';')}","${(p.tindakanList||[]).join(';')}"\n`;
                     });
                 });
