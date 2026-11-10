@@ -31,19 +31,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes bounceEmoji {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-5px) scale(1.1); }
-        }
-
-        .emoji-status {
-            display: inline-block;
-            font-size: 1.8rem;
-            animation: bounceEmoji 1.5s infinite ease-in-out;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-
         .navbar {
             background: rgba(255, 255, 255, 0.98) !important;
             backdrop-filter: blur(10px);
@@ -169,42 +156,14 @@
                 <span>LAPORAN PROBLEM EXTRUDER</span>
             </a>
             <div class="d-flex align-items-center gap-3">
-                <span id="navSessionBadge" class="badge bg-success px-3 py-2 fw-bold fs-6">🟢 SESI AKTIF: Extruderautoseal</span>
+                <span class="badge bg-success px-3 py-2 fw-bold fs-6">🟢 TIM EXTRUDER ONLINE</span>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-primary btn-sm fw-bold" onclick="switchTab('form')" id="navTabForm"><i class="fa-solid fa-pen-to-square me-1"></i> Form</button>
                     <button class="btn btn-outline-secondary btn-sm fw-bold" onclick="switchTab('history')" id="navTabHistory"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</button>
-                    <button class="btn btn-danger btn-sm fw-bold" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
                 </div>
             </div>
         </div>
     </nav>
-
-    <!-- MODAL LOGIN 1 USER -->
-    <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-primary text-white rounded-top-4 py-3">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-lock me-2"></i>Login Sistem Produksi Extruder</h5>
-                </div>
-                <div class="modal-body p-4">
-                    <div id="loginAlertBox" class="alert alert-danger d-none py-2 small fw-bold" role="alert"></div>
-                    <form id="loginForm" onsubmit="executeLogin(event)">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-dark">Username</label>
-                            <input type="text" id="loginUsername" class="form-control" value="Extruderautoseal" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-dark">Password</label>
-                            <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password..." required>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary-custom py-2 fw-bold">Masuk ke Sistem</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- MODAL PROTEKSI PASSWORD PDF -->
     <div class="modal fade" id="pdfAuthModal" tabindex="-1">
@@ -482,13 +441,10 @@
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCqSIJbiqBey6pAIYHmVb3BXh8r82F1_xCc2Ui5s9MH5-phvzRzTmlU7X8x6z6cuXXMg/exec"; 
         
-        const LOGIN_USERNAME = "Extruderautoseal";
-        const LOGIN_PASSWORD = "inoac1234";
         const DELETE_PASSWORD = "hapus1234";
         const PDF_USER = "extruderhebat";
         const PDF_PASS = "inoac1234";
 
-        let loginModalInstance = null;
         let pdfAuthModalInstance = null;
         let dynamicMasterItems = [];
         let dynamicCategories = [];
@@ -502,9 +458,7 @@
         let autoRefreshInterval = null;
 
         document.addEventListener("DOMContentLoaded", async () => {
-            loginModalInstance = new bootstrap.Modal(document.getElementById('loginModal'));
             pdfAuthModalInstance = new bootstrap.Modal(document.getElementById('pdfAuthModal'));
-            checkActiveSession();
 
             loadLocalMaterialMasters();
             const today = new Date().toISOString().split('T')[0];
@@ -517,72 +471,6 @@
 
             startAutoRefresh();
         });
-
-        function checkActiveSession() {
-            const isLogged = localStorage.getItem('extruder_is_logged');
-            const activeDevice = localStorage.getItem('extruder_active_device');
-            const deviceId = getDeviceId();
-
-            if (isLogged === "true") {
-                if (activeDevice && activeDevice !== deviceId) {
-                    localStorage.removeItem('extruder_is_logged');
-                    loginModalInstance.show();
-                    const alertBox = document.getElementById('loginAlertBox');
-                    alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
-                    alertBox.classList.remove('d-none');
-                } else {
-                    localStorage.setItem('extruder_active_device', deviceId);
-                }
-            } else {
-                let activeSessions = localStorage.getItem('extruder_active_device');
-                if (activeSessions && activeSessions !== deviceId) {
-                    const alertBox = document.getElementById('loginAlertBox');
-                    alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
-                    alertBox.classList.remove('d-none');
-                }
-                loginModalInstance.show();
-            }
-        }
-
-        function getDeviceId() {
-            let id = localStorage.getItem('extruder_device_id');
-            if (!id) {
-                id = 'dev-' + Math.random().toString(36).substring(2, 9);
-                localStorage.setItem('extruder_device_id', id);
-            }
-            return id;
-        }
-
-        function executeLogin(event) {
-            event.preventDefault();
-            const pInput = document.getElementById('loginPassword').value.trim();
-            const alertBox = document.getElementById('loginAlertBox');
-            const deviceId = getDeviceId();
-
-            const activeDevice = localStorage.getItem('extruder_active_device');
-            if (activeDevice && activeDevice !== deviceId) {
-                alertBox.innerHTML = "⚠️ <b>Akses Ditolak:</b> Akun sedang aktif digunakan di perangkat lain. Harap lakukan Logout terlebih dahulu pada perangkat sebelumnya.";
-                alertBox.classList.remove('d-none');
-                return;
-            }
-
-            if (pInput !== LOGIN_PASSWORD) {
-                alertBox.innerText = "Password salah!";
-                alertBox.classList.remove('d-none');
-                return;
-            }
-
-            localStorage.setItem('extruder_is_logged', "true");
-            localStorage.setItem('extruder_active_device', deviceId);
-            alertBox.classList.add('d-none');
-            loginModalInstance.hide();
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('extruder_is_logged');
-            localStorage.removeItem('extruder_active_device');
-            location.reload();
-        }
 
         function openPdfAuthModal() {
             document.getElementById('pdfUsername').value = '';
@@ -1723,7 +1611,6 @@
             
             let totalAllReject = Object.values(factorCounts).reduce((a, b) => a + b, 0);
 
-            // Grafik Batang Faktor dengan Warna Merah Elegan (#ef4444)
             factorChartInstance = new Chart(ctxFactor, {
                 type: 'bar',
                 data: {
@@ -1756,7 +1643,6 @@
             const ctxTop = document.getElementById('topProblemChart').getContext('2d');
             if(topProblemChartInstance) topProblemChartInstance.destroy();
 
-            // Grafik Batang Horizontal 10 Kategori Tertinggi dengan Warna Merah Elegan (#ef4444)
             topProblemChartInstance = new Chart(ctxTop, {
                 type: 'bar',
                 data: {
@@ -1797,11 +1683,8 @@
 
         function editReport(id) {
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            
-            // Mencari laporan berdasarkan ID atau mencocokkan data baris tabel
             let report = history.find(r => r.header.id === id);
             
-            // Jika ID tidak langsung ketemu (misal data lama), cari berdasarkan tanggal, shift, dan mesin
             if(!report) {
                 report = history.find(r => {
                     const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
@@ -1862,15 +1745,21 @@
 
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             if(deleteTargetAction === "single") {
-                history = history.filter(r => r.header.id !== currentDeleteId);
+                // Menghapus laporan berdasarkan id unik atau indeks pencocokan
+                history = history.filter(r => {
+                    const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
+                    return rId !== currentDeleteId;
+                });
                 localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
-                alert("Laporan berhasil dihapus.");
+                alert("Laporan berhasil dihapus dari dashboard.");
             } else if(deleteTargetAction === "all") {
                 localStorage.removeItem('extruder_reports_v7');
                 alert("Semua riwayat laporan berhasil dihapus.");
             }
 
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            
+            // Paksa render ulang tabel dan grafik seketika
             renderHistoryTable();
         }
 
