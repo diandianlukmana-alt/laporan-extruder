@@ -123,8 +123,6 @@
         .table-custom th { background: linear-gradient(135deg, #312e81 0%, #3730a3 100%) !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; }
         .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
-        .history-mobile-card { background: #ffffff; border: 1px solid #818cf8; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; }
-
         /* ================= PROFESSIONAL PRODUCTION REPORT PRINT STYLING ================= */
         @media print {
             body { background: #ffffff !important; color: #000000 !important; font-size: 10pt; padding: 0 !important; }
@@ -181,7 +179,7 @@
         </div>
     </nav>
 
-    <!-- MODAL LOGIN 1 USER (SINGLE SESSION) -->
+    <!-- MODAL LOGIN 1 USER -->
     <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -628,9 +626,8 @@
             }
 
             let report = history[0];
-            let header = report.header;
+            let header = report.header || {};
 
-            // Target KPI spesifik per mesin
             const kpiTargets = { 
                 "LINE 1": { target: 6.0, desc: "≤ 6.0%" }, 
                 "LINE 2": { target: 6.5, desc: "≤ 6.5%" }, 
@@ -642,73 +639,86 @@
             const machineInfo = kpiTargets[header.namaMesin] || { target: 6.0, desc: "≤ 6.0%" };
             const maxThreshold = machineInfo.target;
 
-            // Format tanggal lengkap (contoh: Selasa, 10 November 2026)
-            let formattedDate = header.tanggal;
+            // Format Tanggal Lengkap (Hari, Tanggal Bulan Tahun)
+            let rawDate = header.tanggal || new Date().toISOString().split('T')[0];
+            let formattedDate = rawDate;
             try {
-                const parts = header.tanggal.split('-');
+                const parts = rawDate.split('-');
                 if (parts.length === 3) {
                     const d = new Date(parts[0], parts[1] - 1, parts[2]);
                     formattedDate = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                } else {
+                    formattedDate = `${rawDate} (${header.hari || ''})`;
                 }
             } catch(e) {
-                formattedDate = `${header.tanggal} (${header.hari})`;
+                formattedDate = `${rawDate} (${header.hari || ''})`;
             }
 
             let waText = `📋 *PT. INOAC POLYTECHNO INDONESIA*\n`;
             waText += `🏭 *Autoseal Extruder Report*\n`;
             waText += `──────────────────────\n`;
             waText += `📅 *Tanggal:* ${formattedDate}\n`;
-            waText += `⏰ *Shift:* ${header.shift}\n`;
-            waText += `⚙️ *Mesin:* ${header.namaMesin} (Target KPI: *${machineInfo.desc}*)\n`;
+            waText += `⏰ *Shift:* ${header.shift || '-'}\n`;
+            waText += `⚙️ *Mesin:* ${header.namaMesin || '-'} (Target KPI: *${machineInfo.desc}*)\n`;
             waText += `👤 *PIC:* ${header.pic || 'Extruderautoseal'}\n`;
             waText += `──────────────────────\n\n`;
 
             let totalShiftMaterial = 0;
             let totalShiftReject = 0;
 
-            // Perulangan untuk setiap Item Produk
-            (report.items || []).forEach((item, idx) => {
+            let itemsToProcess = report.items || [];
+            
+            itemsToProcess.forEach((item, idx) => {
                 let comp = parseFloat(item.compound) || 0;
                 let met = parseFloat(item.metalInsert) || 0;
+                
+                if(item.compoundList && item.compoundList.length > 0) {
+                    comp = item.compoundList.reduce((acc, c) => acc + (parseFloat(c.weight) || 0), 0);
+                }
+                if(item.metalList && item.metalList.length > 0) {
+                    met = item.metalList.reduce((acc, m) => acc + (parseFloat(m.weight) || 0), 0);
+                }
+
                 let totMat = comp + met;
                 totalShiftMaterial += totMat;
 
-                waText += `📦 *Item #${idx+1}: ${item.namaItem}*\n`;
+                waText += `📦 *Item #${idx+1}: ${item.namaItem || 'Produk'}*\n`;
                 
-                // Rincian Pemakaian Compound
                 if (item.compoundList && item.compoundList.length > 0) {
                     waText += `   🧪 *Compound:*\n`;
                     item.compoundList.forEach(c => {
                         waText += `      • ${c.name}: ${c.weight} Kg\n`;
                     });
+                } else if (comp > 0) {
+                    waText += `   🧪 *Compound:* ${comp} Kg\n`;
                 }
 
-                // Rincian Pemakaian Metal Insert
                 if (item.metalList && item.metalList.length > 0) {
                     waText += `   🔩 *Metal Insert:*\n`;
                     item.metalList.forEach(m => {
                         waText += `      • ${m.name}: ${m.weight} Kg\n`;
                     });
+                } else if (met > 0) {
+                    waText += `   🔩 *Metal Insert:* ${met} Kg\n`;
                 }
 
                 waText += `   🔹 *Total Material:* *${totMat.toFixed(1)} Kg*\n\n`;
                 
-                // Perulangan untuk seluruh problem pada item tersebut tanpa status per problem
-                (item.problems || []).forEach((prob, pIdx) => {
+                let problemsList = item.problems || [];
+                problemsList.forEach((prob, pIdx) => {
                     let rejKg = parseFloat(prob.rejectionKg) || 0;
                     totalShiftReject += rejKg;
                     
                     let rejPct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
 
-                    waText += `   ⚠️ *Problem ${pIdx+1} (${prob.faktor}):* ${prob.problemDesc}\n`;
+                    waText += `   ⚠️ *Problem ${pIdx+1} (${prob.faktor || 'UMUM'}):* ${prob.problemDesc || '-'}\n`;
                     waText += `   ❌ *Reject:* ${rejKg} Kg (${rejPct.toFixed(2)}%)\n`;
-                    waText += `   🔍 *Analisa:* ${(prob.analisaList || []).join('; ')}\n`;
-                    waText += `   💡 *Tindakan:* ${(prob.tindakanList || []).join('; ')}\n`;
+                    waText += `   🔍 *Analisa:* ${(prob.analisaList || []).join('; ') || '-'}\n`;
+                    waText += `   💡 *Tindakan:* ${(prob.tindakanList || []).join('; ') || '-'}\n`;
                 });
                 waText += `\n`;
             });
 
-            // Perhitungan Akumulasi Total Shift & Status Akhir
             let totalShiftPct = totalShiftMaterial > 0 ? (totalShiftReject / totalShiftMaterial) * 100 : 0;
             let isAccumulationOk = totalShiftPct <= maxThreshold;
             let accumulationStatus = isAccumulationOk ? "✅ OK (Tercapai)" : "❌ NG (Tidak Tercapai)";
@@ -1573,14 +1583,22 @@
             }
 
             let primaryMachine = filtered[0].header.namaMesin || "LINE 1";
+            let countedReportIds = new Set(); // Mencegah material terhitung 2x untuk laporan ID yang sama
 
             filtered.forEach((report) => {
                 const h = report.header;
+                const reportId = h.id || (h.tanggal + '-' + h.shift + '-' + h.namaMesin);
+
                 (report.items || []).forEach(item => {
                     let comp = parseFloat(item.compound) || 0;
                     let met = parseFloat(item.metalInsert) || 0;
                     let totMat = comp + met;
-                    sumMat += totMat;
+
+                    let uniqueMaterialKey = reportId + '-' + item.namaItem;
+                    if (!countedReportIds.has(uniqueMaterialKey)) {
+                        sumMat += totMat;
+                        countedReportIds.add(uniqueMaterialKey);
+                    }
 
                     let compDetails = (item.compoundList || []).map(c => `${c.name}: ${c.weight} Kg`).join('<br>');
                     let metalDetails = (item.metalList || []).map(m => `${m.name}: ${m.weight} Kg`).join('<br>');
