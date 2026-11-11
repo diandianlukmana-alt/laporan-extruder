@@ -442,7 +442,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcYYiaAQgPaoI6WxFsn56vuhAkxEYngGV1QbXy25z9le-gp--zZ23ZM3sKgrV53JvAXg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8NgU3TzXY8DW4LaoSgdOGt_Z9GviVbv9exqliaG-PBDAMMm4JszotyX5NoWFhbY8QSA/exec"; 
         
         const DELETE_PASSWORD = "hapus1234";
         const PDF_USER = "extruderhebat";
@@ -463,6 +463,8 @@
 
         let itemIndex = 0;
         let deleteTargetAction = null;
+        let targetProblemIdToDelete = null;
+        let targetReportIdToDelete = null;
         let factorChartInstance = null;
         let topProblemChartInstance = null;
         let autoRefreshInterval = null;
@@ -537,19 +539,7 @@
             const machineInfo = kpiTargets[header.namaMesin] || { target: 6.0, desc: "≤ 6.0%" };
             const maxThreshold = machineInfo.target;
 
-            let rawDate = header.tanggal || new Date().toISOString().split('T')[0];
-            let formattedDate = rawDate;
-            try {
-                const parts = rawDate.split('-');
-                if (parts.length === 3) {
-                    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                    formattedDate = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                } else {
-                    formattedDate = `${rawDate} (${header.hari || ''})`;
-                }
-            } catch(e) {
-                formattedDate = `${rawDate} (${header.hari || ''})`;
-            }
+            let formattedDate = formatTanggalIndo(header.tanggal);
 
             let waText = `📋 *PT. INOAC POLYTECHNO INDONESIA*\n`;
             waText += `🏭 *Autoseal Extruder Report*\n`;
@@ -790,7 +780,7 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
-        // Format tanggal bersih tanpa teks GMT/jam
+        // FORMAT TANGGAL LENGKAP: HARI, TANGGAL, BULAN, TAHUN (Tanpa GMT)
         function formatTanggalIndo(dateStr) {
             if (!dateStr) return '-';
             try {
@@ -798,14 +788,12 @@
                 const parts = cleanDate.split('-');
                 if (parts.length === 3) {
                     const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' };
-                    let formatted = d.toLocaleDateString('id-ID', options);
-                    return formatted.replace(/,\s*/, ', ').replace(/\s+/g, '-');
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    return d.toLocaleDateString('id-ID', options);
                 }
                 const d2 = new Date(dateStr);
                 if (!isNaN(d2)) {
-                    let formatted = d2.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' });
-                    return formatted.replace(/,\s*/, ', ').replace(/\s+/g, '-');
+                    return d2.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 }
                 return dateStr;
             } catch(e) {
@@ -1080,6 +1068,7 @@
             const problemsContainer = document.getElementById(`problems-container-${itemBlockId}`);
             const probCount = problemsContainer.children.length + 1;
             const probCardId = `${itemBlockId}-prob-${Date.now()}-${probCount}`;
+            const problemIdVal = existingProb ? (existingProb.problemId || '') : ('PRB-' + Date.now() + '-' + probCount);
 
             const isCustomDesc = existingProb && !dynamicCategories.includes(existingProb.problemDesc);
             const descInputDisplay = isCustomDesc ? "block" : "none";
@@ -1093,7 +1082,7 @@
             catOptions += `<option value="CUSTOM_INPUT" ${isCustomDesc ? 'selected' : ''}>✏️ Ketik Deskripsi Problem Lain (Manual)...</option>`;
 
             const html = `
-                <div class="problem-item-card" id="${probCardId}">
+                <div class="problem-item-card" id="${probCardId}" data-problem-id="${problemIdVal}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="badge bg-secondary fw-bold problem-index-badge">Problem #${probCount}</span>
                         <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none fw-bold" onclick="removeProblemCard('${probCardId}')"><i class="fa-solid fa-xmark"></i> Hapus Problem</button>
@@ -1180,12 +1169,11 @@
                     existingProb.tindakanList.forEach(t => addTindakanRow(probCardId, t));
                 } else { addTindakanRow(probCardId); }
 
-                if(existingProb.photoProblemList) {
-                    existingProb.photoProblemList.forEach(pUrl => addPhotoToContainer(probCardId, 'prob', pUrl));
-                }
-                if(existingProb.photoImprovementList) {
-                    existingProb.photoImprovementList.forEach(iUrl => addPhotoToContainer(probCardId, 'imp', iUrl));
-                }
+                let pImgs = existingProb.photoProblemList || existingProb.fotoProblemList || [];
+                let iImgs = existingProb.photoImprovementList || existingProb.fotoImprovementList || [];
+                
+                pImgs.forEach(pUrl => addPhotoToContainer(probCardId, 'prob', pUrl));
+                iImgs.forEach(iUrl => addPhotoToContainer(probCardId, 'imp', iUrl));
             } else {
                 addAnalisaRow(probCardId);
                 addFollowUpRow(probCardId);
@@ -1318,6 +1306,7 @@
         function addPhotoToContainer(probCardId, type, url) {
             if(!url) return;
             const container = document.querySelector(`#${probCardId} .${type === 'prob' ? 'prob' : 'imp'}-photo-container`);
+            if(!container) return;
             const emptyBox = Array.from(container.children).find(child => !child.querySelector('img'));
             const targetBox = emptyBox || document.createElement('div');
             targetBox.className = "img-preview-box position-relative";
@@ -1365,11 +1354,12 @@
         async function handleFormSubmit(event) {
             event.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
+            const editId = document.getElementById('editReportId').value;
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan Data...`;
 
             const header = {
-                id: document.getElementById('editReportId').value || ('REP-' + Date.now()),
+                id: editId || ('REP-' + Date.now()),
                 tanggal: document.getElementById('tanggal').value,
                 hari: document.getElementById('hari').value,
                 shift: document.getElementById('shift').value,
@@ -1420,7 +1410,7 @@
 
                 let problems = [];
                 const probCards = block.querySelectorAll('.problem-item-card');
-                for(let pCard of probCards) {
+                probCards.forEach((pCard, pIdx) => {
                     const pDropdown = pCard.querySelector('.prob-desc-dropdown');
                     let probDesc = pDropdown.value === "CUSTOM_INPUT" ? pCard.querySelector('.prob-desc-custom').value.trim() : pDropdown.value;
 
@@ -1439,7 +1429,10 @@
                     let photoImprovementList = [];
                     pCard.querySelectorAll('.imp-photo-container img').forEach(img => photoImprovementList.push(img.src));
 
+                    let existingProblemId = pCard.getAttribute('data-problem-id') || ('PRB-' + Date.now() + '-' + pIdx);
+
                     problems.push({
+                        problemId: existingProblemId,
                         faktor: pCard.querySelector('.prob-faktor').value,
                         problemDesc: probDesc,
                         rejectionKg: parseFloat(pCard.querySelector('.prob-reject-kg').value) || 0,
@@ -1449,7 +1442,7 @@
                         photoProblemList: photoProblemList,
                         photoImprovementList: photoImprovementList
                     });
-                }
+                });
 
                 items.push({
                     namaItem: namaItem,
@@ -1461,12 +1454,16 @@
                 });
             }
 
-            const reportData = { header, items };
+            const reportData = { 
+                reportId: header.id,
+                header: header, 
+                items: items,
+                isEdit: !!editId 
+            };
 
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            const editId = document.getElementById('editReportId').value;
             if(editId) {
-                history = history.filter(r => r.header.id !== editId);
+                history = history.filter(r => (r.reportId || r.header.id) !== editId);
             }
             history.unshift(reportData);
             localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
@@ -1583,7 +1580,7 @@
 
             filtered.forEach((report) => {
                 const h = report.header;
-                const reportId = h.id || (h.tanggal + '-' + h.shift + '-' + h.namaMesin);
+                const reportId = h.id || report.reportId || (h.tanggal + '-' + h.shift + '-' + h.namaMesin);
 
                 (report.items || []).forEach(item => {
                     let comp = parseFloat(item.compound) || 0;
@@ -1604,7 +1601,7 @@
                         countedReportIds.add(uniqueMaterialKey);
                     }
 
-                    // Perbaikan pembacaan compoundList spesifik agar menampilkan nama compound asli (misal: E-6812)
+                    // Tampilan Spesifik Compound
                     let compDetails = '-';
                     if (item.compoundList && item.compoundList.length > 0) {
                         compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
@@ -1621,10 +1618,11 @@
 
                     let materialSummaryHtml = `<small class="text-primary fw-bold">Compound:</small><br>${compDetails}<br><small class="text-info fw-bold">Metal Insert:</small><br>${metalDetails}<br><strong>Total Material: ${totMat.toFixed(1)} Kg</strong>`;
 
-                    (item.problems || []).forEach(prob => {
+                    (item.problems || []).forEach((prob, pIdx) => {
                         let rejKg = parseFloat(prob.rejectionKg) || 0;
                         sumRej += rejKg;
                         let pct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
+                        let problemId = prob.problemId || ('PRB-' + reportId + '-' + pIdx);
 
                         if(factorCounts[prob.faktor] !== undefined) factorCounts[prob.faktor] += rejKg;
                         if(prob.problemDesc) {
@@ -1633,15 +1631,15 @@
                             topProbMap[prob.problemDesc].pct += pct;
                         }
 
-                        let pImgs = (prob.photoProblemList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Prob';
-                        let iImgs = (prob.photoImprovementList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Imp';
+                        let pImgs = (prob.photoProblemList || prob.fotoProblemList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Prob';
+                        let iImgs = (prob.photoImprovementList || prob.fotoImprovementList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Imp';
 
                         let row = `
                             <tr>
                                 <td class="no-print text-center">
                                     <div class="d-flex gap-1 justify-content-center">
-                                        <button class="btn btn-sm btn-outline-primary py-0 px-1 fw-bold" onclick="editReport('${h.id}')" title="Revisi"><i class="fa-solid fa-pen-to-square"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger py-0 px-1 fw-bold" onclick="confirmDeleteReport('${h.id}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-outline-primary py-0 px-1 fw-bold" onclick="editReport('${reportId}')" title="Revisi Laporan"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger py-0 px-1 fw-bold" onclick="confirmDeleteProblemRow('${reportId}', '${problemId}')" title="Hapus Baris Rejection Ini"><i class="fa-solid fa-trash"></i></button>
                                     </div>
                                 </td>
                                 <td>
@@ -1771,14 +1769,7 @@
 
         function editReport(id) {
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            let report = history.find(r => r.header.id === id);
-            
-            if(!report) {
-                report = history.find(r => {
-                    const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
-                    return rId === id || id.includes(r.header.tanggal);
-                });
-            }
+            let report = history.find(r => (r.reportId || r.header.id) === id);
 
             if(!report) {
                 alert("Data laporan tidak ditemukan untuk direvisi!");
@@ -1786,7 +1777,7 @@
             }
 
             switchTab('form');
-            document.getElementById('editReportId').value = report.header.id || ('REP-' + Date.now());
+            document.getElementById('editReportId').value = report.reportId || report.header.id;
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-primary me-2"></i>REVISI LAPORAN PRODUKSI EXTRUDER`;
             document.getElementById('formModeBadge').innerText = "Mode Revisi";
             document.getElementById('cancelEditBtn').classList.remove('d-none');
@@ -1807,24 +1798,25 @@
             }
         }
 
-        let currentDeleteId = null;
-        function confirmDeleteReport(id) {
-            currentDeleteId = id;
-            deleteTargetAction = "single";
-            document.getElementById('deleteModalDesc').innerText = "Masukkan password untuk menghapus laporan ini.";
+        function confirmDeleteProblemRow(reportId, problemId) {
+            targetReportIdToDelete = reportId;
+            targetProblemIdToDelete = problemId;
+            deleteTargetAction = "single_row";
+            document.getElementById('deleteModalDesc').innerText = "Masukkan password untuk menghapus baris rejection ini.";
             document.getElementById('deletePasswordInput').value = "";
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
 
         function openDeleteAllModal() {
-            currentDeleteId = null;
+            targetReportIdToDelete = null;
+            targetProblemIdToDelete = null;
             deleteTargetAction = "all";
             document.getElementById('deleteModalDesc').innerText = "Masukkan password untuk MENGHAPUS SEMUA riwayat laporan.";
             document.getElementById('deletePasswordInput').value = "";
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
 
-        function executeDeleteAction() {
+        async function executeDeleteAction() {
             const pass = document.getElementById('deletePasswordInput').value.trim();
             if(pass !== DELETE_PASSWORD) {
                 alert("Password salah!");
@@ -1832,16 +1824,57 @@
             }
 
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            if(deleteTargetAction === "single") {
-                history = history.filter(r => {
-                    const rId = r.header.id || (r.header.tanggal + '-' + r.header.shift + '-' + r.header.namaMesin);
-                    return rId !== currentDeleteId;
+            
+            if(deleteTargetAction === "single_row") {
+                // Hapus spesifik baris problem dari localStorage
+                history.forEach(r => {
+                    if((r.reportId || r.header.id) === targetReportIdToDelete) {
+                        (r.items || []).forEach(i => {
+                            i.problems = (i.problems || []).filter(p => p.problemId !== targetProblemIdToDelete);
+                        });
+                    }
                 });
+
+                // Bersihkan item jika sudah tidak memiliki problem
+                history.forEach(r => {
+                    r.items = (r.items || []).filter(i => i.problems && i.problems.length > 0);
+                });
+                history = history.filter(r => r.items && r.items.length > 0);
+
                 localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
-                alert("Laporan berhasil dihapus.");
+
+                // Kirim perintah hapus ke Google Sheets Backend
+                if(GOOGLE_SCRIPT_URL) {
+                    try {
+                        await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: "delete_report",
+                                reportId: targetReportIdToDelete,
+                                problemId: targetProblemIdToDelete
+                            })
+                        });
+                    } catch(e) { console.error("Error delete ke Sheets:", e); }
+                }
+
+                alert("Baris rejection berhasil dihapus!");
             } else if(deleteTargetAction === "all") {
                 localStorage.removeItem('extruder_reports_v7');
-                alert("Semua riwayat laporan berhasil dihapus.");
+
+                if(GOOGLE_SCRIPT_URL) {
+                    try {
+                        await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: "clear_sheet" })
+                        });
+                    } catch(e) { console.error("Error clear sheet:", e); }
+                }
+
+                alert("Semua riwayat laporan berhasil dikosongkan!");
             }
 
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
@@ -1877,7 +1910,7 @@
                 return;
             }
 
-            let csv = "ID Laporan,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Compound (Kg),Metal Insert (Kg),Total Material (Kg),Faktor,Deskripsi Problem,Rejection (Kg),Rejection (%),Analisa,Follow Up,Tindakan Improvement\n";
+            let csv = "ID Laporan,ID Problem,Tanggal,Hari,Shift,Nama Mesin,PIC,Nama Item,Compound (Kg),Metal Insert (Kg),Total Material (Kg),Faktor,Deskripsi Problem,Rejection (Kg),Rejection (%),Analisa,Follow Up,Tindakan Improvement\n";
             history.forEach(r => {
                 const h = r.header;
                 (r.items || []).forEach(i => {
@@ -1885,7 +1918,7 @@
                     (i.problems || []).forEach(p => {
                         let rejKg = parseFloat(p.rejectionKg) || 0;
                         let pct = totMat > 0 ? (rejKg / totMat) * 100 : 0;
-                        csv += `"${h.id}","${h.tanggal}","${h.hari}","${h.shift}","${h.namaMesin}","${h.pic}","${i.namaItem}","${i.compound}","${i.metalInsert}","${totMat.toFixed(1)}","${p.faktor}","${p.problemDesc}","${rejKg}","${pct.toFixed(2)}%","${(p.analisaList||[]).join('; ')}","${(p.followUpList||[]).join('; ')}","${(p.tindakanList||[]).join('; ')}"\n`;
+                        csv += `"${h.id}","${p.problemId||''}","${h.tanggal}","${h.hari}","${h.shift}","${h.namaMesin}","${h.pic}","${i.namaItem}","${i.compound}","${i.metalInsert}","${totMat.toFixed(1)}","${p.faktor}","${p.problemDesc}","${rejKg}","${pct.toFixed(2)}%","${(p.analisaList||[]).join('; ')}","${(p.followUpList||[]).join('; ')}","${(p.tindakanList||[]).join('; ')}"\n`;
                     });
                 });
             });
