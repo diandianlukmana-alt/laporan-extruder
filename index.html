@@ -45,7 +45,6 @@
             border: 1px solid rgba(99, 102, 241, 0.25);
             border-radius: 1.25rem;
             box-shadow: 0 15px 35px -5px rgba(79, 70, 229, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
             animation: fadeInUp 0.6s ease-out forwards;
         }
 
@@ -442,24 +441,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8NgU3TzXY8DW4LaoSgdOGt_Z9GviVbv9exqliaG-PBDAMMm4JszotyX5NoWFhbY8QSA/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytaGTQA0XIh3kSL1KVz0Id2h0En-gnIBI45IbBSoSftPW8FxqrFX7VbrSxBrOXqkpUDw/exec"; 
         
         const DELETE_PASSWORD = "hapus1234";
         const PDF_USER = "extruderhebat";
         const PDF_PASS = "inoac1234";
 
-        const DEFAULT_COMPOUNDS = [
-            "M-6810 rev4", "M-6022 rev3", "M-6716 rev3", 
-            "E-1025", "E-6024", "E-6026", "E-6030", "E-6030 skin/ribbon kecil", 
-            "E-6614", "E-6714", "E-6715", "E-6715 skin/ribbon kecil", 
-            "E-6715 T1", "E-6812", "E-6902"
-        ];
-
         let pdfAuthModalInstance = null;
         let dynamicMasterItems = [];
-        let dynamicCategories = [];
-        let dynamicMasterCompounds = [...DEFAULT_COMPOUNDS];
+        let dynamicMasterCompounds = [];
         let dynamicMasterMetals = [];
+        let dynamicCategories = [];
 
         let itemIndex = 0;
         let deleteTargetAction = null;
@@ -472,11 +464,11 @@
         document.addEventListener("DOMContentLoaded", async () => {
             pdfAuthModalInstance = new bootstrap.Modal(document.getElementById('pdfAuthModal'));
 
-            loadLocalMaterialMasters();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
             updateHari();
             addItemBlock();
+            
             await fetchMasterDataFromSheet();
             populateFilterDropdowns();
             renderHistoryTable();
@@ -504,17 +496,6 @@
             }
 
             pdfAuthModalInstance.hide();
-
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            if (history.length > 0) {
-                let latest = history[0];
-                let tgl = latest.header.tanggal || new Date().toISOString().split('T')[0];
-                let shf = (latest.header.shift || 'Shift-1').replace(/\s+/g, '-');
-                document.title = `Laporan_Extruder_${tgl}_${shf}`;
-            } else {
-                document.title = `Laporan_Extruder_Produksi`;
-            }
-
             window.print();
         }
 
@@ -655,17 +636,6 @@
             }, 30000);
         }
 
-        function loadLocalMaterialMasters() {
-            let savedComps = JSON.parse(localStorage.getItem('extruder_master_compounds') || '[]');
-            dynamicMasterCompounds = [...new Set([...DEFAULT_COMPOUNDS, ...savedComps])];
-            dynamicMasterMetals = JSON.parse(localStorage.getItem('extruder_master_metals') || '[]');
-        }
-
-        function saveLocalMaterialMasters() {
-            localStorage.setItem('extruder_master_compounds', JSON.stringify([...new Set(dynamicMasterCompounds)]));
-            localStorage.setItem('extruder_master_metals', JSON.stringify([...new Set(dynamicMasterMetals)]));
-        }
-
         async function fetchMasterDataFromSheet() {
             if(!GOOGLE_SCRIPT_URL) return;
             try {
@@ -673,20 +643,14 @@
                 const result = await response.json();
                 if(result.status === "success") {
                     dynamicMasterItems = result.items || [];
+                    dynamicMasterCompounds = result.compounds || [];
+                    dynamicMasterMetals = result.metals || [];
                     dynamicCategories = result.categories || [];
                     
                     if(result.reports && result.reports.length > 0) {
                         localStorage.setItem('extruder_reports_v7', JSON.stringify(result.reports));
                         renderHistoryTable();
                     }
-
-                    if(result.compounds) {
-                        dynamicMasterCompounds = [...new Set([...dynamicMasterCompounds, ...result.compounds])];
-                    }
-                    if(result.metals) {
-                        dynamicMasterMetals = [...new Set([...dynamicMasterMetals, ...result.metals])];
-                    }
-                    saveLocalMaterialMasters();
 
                     document.querySelectorAll('.item-block-card').forEach(block => {
                         refreshItemDropdown(block);
@@ -780,7 +744,6 @@
             document.getElementById('hari').value = days[d.getDay()];
         }
 
-        // FORMAT TANGGAL LENGKAP: HARI, TANGGAL, BULAN, TAHUN (Tanpa GMT)
         function formatTanggalIndo(dateStr) {
             if (!dateStr) return '-';
             try {
@@ -788,8 +751,7 @@
                 const parts = cleanDate.split('-');
                 if (parts.length === 3) {
                     const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    return d.toLocaleDateString('id-ID', options);
+                    return d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 }
                 const d2 = new Date(dateStr);
                 if (!isNaN(d2)) {
@@ -899,7 +861,7 @@
             if(existingData && existingData.compoundList && existingData.compoundList.length > 0) {
                 existingData.compoundList.forEach(c => addCompoundRow(itemBlockId, c));
             } else if(existingData && existingData.compound) {
-                addCompoundRow(itemBlockId, { name: existingData.compoundName || "M-6810 rev4", weight: existingData.compound });
+                addCompoundRow(itemBlockId, { name: existingData.compoundName || "M-6810 REV 4", weight: existingData.compound });
             } else {
                 addCompoundRow(itemBlockId);
             }
@@ -991,11 +953,6 @@
                 customInput.style.display = "none";
                 customInput.value = dropdown.value;
                 customInput.required = false;
-                
-                if (dropdown.value && !dynamicMasterCompounds.includes(dropdown.value)) {
-                    dynamicMasterCompounds.push(dropdown.value);
-                    saveLocalMaterialMasters();
-                }
             }
         }
 
@@ -1051,11 +1008,6 @@
                 customInput.style.display = "none";
                 customInput.value = dropdown.value;
                 customInput.required = false;
-
-                if (dropdown.value && dropdown.value !== "CUSTOM_INPUT" && !dynamicMasterMetals.includes(dropdown.value)) {
-                    dynamicMasterMetals.push(dropdown.value);
-                    saveLocalMaterialMasters();
-                }
             }
         }
 
@@ -1384,9 +1336,6 @@
                     let cWeight = parseFloat(row.querySelector('.comp-weight-input').value) || 0;
                     if(cName) {
                         compoundList.push({ name: cName, weight: cWeight });
-                        if(d.value !== "CUSTOM_INPUT" && !dynamicMasterCompounds.includes(cName)) {
-                            dynamicMasterCompounds.push(cName);
-                        }
                     }
                 });
 
@@ -1397,13 +1346,8 @@
                     let mWeight = parseFloat(row.querySelector('.metal-weight-input').value) || 0;
                     if(mName && mWeight > 0) {
                         metalList.push({ name: mName, weight: mWeight });
-                        if(d.value !== "CUSTOM_INPUT" && !dynamicMasterMetals.includes(mName)) {
-                            dynamicMasterMetals.push(mName);
-                        }
                     }
                 });
-
-                saveLocalMaterialMasters();
 
                 let totComp = compoundList.reduce((acc, cur) => acc + cur.weight, 0);
                 let totMetal = metalList.reduce((acc, cur) => acc + cur.weight, 0);
@@ -1601,7 +1545,7 @@
                         countedReportIds.add(uniqueMaterialKey);
                     }
 
-                    // Tampilan Spesifik Compound
+                    // TAMPILAN COMPOUND SPESIFIK YANG AKURAT
                     let compDetails = '-';
                     if (item.compoundList && item.compoundList.length > 0) {
                         compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
@@ -1826,7 +1770,6 @@
             let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
             
             if(deleteTargetAction === "single_row") {
-                // Hapus spesifik baris problem dari localStorage
                 history.forEach(r => {
                     if((r.reportId || r.header.id) === targetReportIdToDelete) {
                         (r.items || []).forEach(i => {
@@ -1835,7 +1778,6 @@
                     }
                 });
 
-                // Bersihkan item jika sudah tidak memiliki problem
                 history.forEach(r => {
                     r.items = (r.items || []).filter(i => i.problems && i.problems.length > 0);
                 });
@@ -1843,7 +1785,6 @@
 
                 localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
 
-                // Kirim perintah hapus ke Google Sheets Backend
                 if(GOOGLE_SCRIPT_URL) {
                     try {
                         await fetch(GOOGLE_SCRIPT_URL, {
