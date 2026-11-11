@@ -506,8 +506,50 @@
                 return;
             }
 
-            let latestReport = history[0];
-            let header = latestReport.header || {};
+            // AMBIL NILAI FILTER AKTIF DI DASHBOARD
+            const startD = document.getElementById('filterStartDate').value;
+            const endD = document.getElementById('filterEndDate').value;
+            const shiftF = document.getElementById('filterShift').value;
+            const mach = document.getElementById('filterMachine').value;
+            const itemF = document.getElementById('filterItem').value;
+            const probF = document.getElementById('filterProblemDesc').value;
+
+            // FILTER DATA SESUAI DENGAN APA YANG SEDANG TAMPIL DI LAYAR DASHBOARD
+            let filtered = history.filter(r => {
+                let match = true;
+                let rawDate = r.header.tanggal ? r.header.tanggal.split('T')[0] : '';
+                
+                if (rawDate && (startD || endD)) {
+                    let rDateObj = new Date(rawDate);
+                    rDateObj.setHours(0, 0, 0, 0);
+
+                    if (startD) {
+                        let startObj = new Date(startD);
+                        startObj.setHours(0, 0, 0, 0);
+                        if (rDateObj < startObj) match = false;
+                    }
+                    if (endD) {
+                        let endObj = new Date(endD);
+                        endObj.setHours(0, 0, 0, 0);
+                        if (rDateObj > endObj) match = false;
+                    }
+                }
+
+                if(shiftF && r.header.shift !== shiftF) match = false;
+                if(mach && r.header.namaMesin !== mach) match = false;
+                if(itemF && !r.items.some(i => i.namaItem === itemF)) match = false;
+                if(probF && !r.items.some(i => i.problems.some(p => p.problemDesc === probF))) match = false;
+                return match;
+            });
+
+            if (filtered.length === 0) {
+                alert("Tidak ada data laporan yang sesuai dengan filter aktif di dashboard untuk dikirim ke WhatsApp!");
+                return;
+            }
+
+            // AMBIL HEADER DARI DATA PERTAMA HASIL FILTER AKTIF
+            let activeReport = filtered[0];
+            let header = activeReport.header || {};
 
             const kpiTargets = { 
                 "LINE 1": { target: 6.0, desc: "≤ 6.0%" }, 
@@ -535,34 +577,32 @@
             let totalShiftReject = 0;
             let consolidatedItems = {};
             
-            history.forEach(report => {
-                let h = report.header || {};
-                if (h.tanggal === header.tanggal && h.shift === header.shift && h.namaMesin === header.namaMesin) {
-                    (report.items || []).forEach(item => {
-                        let itemName = item.namaItem || 'Produk';
-                        if (!consolidatedItems[itemName]) {
-                            let comp = parseFloat(item.compound) || 0;
-                            let met = parseFloat(item.metalInsert) || 0;
-                            if(item.compoundList && item.compoundList.length > 0) {
-                                comp = item.compoundList.reduce((acc, c) => acc + (parseFloat(c.weight) || 0), 0);
-                            }
-                            if(item.metalList && item.metalList.length > 0) {
-                                met = item.metalList.reduce((acc, m) => acc + (parseFloat(m.weight) || 0), 0);
-                            }
-                            consolidatedItems[itemName] = {
-                                namaItem: itemName,
-                                compound: comp,
-                                metalInsert: met,
-                                compoundList: item.compoundList || [],
-                                metalList: item.metalList || [],
-                                problems: []
-                            };
+            // KONSOLIDASI ITEM HANYA DARI DATA YANG TERFILTER (MISALNYA LINE 3 SAJA)
+            filtered.forEach(report => {
+                (report.items || []).forEach(item => {
+                    let itemName = item.namaItem || 'Produk';
+                    if (!consolidatedItems[itemName]) {
+                        let comp = parseFloat(item.compound) || 0;
+                        let met = parseFloat(item.metalInsert) || 0;
+                        if(item.compoundList && item.compoundList.length > 0) {
+                            comp = item.compoundList.reduce((acc, c) => acc + (parseFloat(c.weight) || 0), 0);
                         }
-                        if (item.problems) {
-                            consolidatedItems[itemName].problems.push(...item.problems);
+                        if(item.metalList && item.metalList.length > 0) {
+                            met = item.metalList.reduce((acc, m) => acc + (parseFloat(m.weight) || 0), 0);
                         }
-                    });
-                }
+                        consolidatedItems[itemName] = {
+                            namaItem: itemName,
+                            compound: comp,
+                            metalInsert: met,
+                            compoundList: item.compoundList || [],
+                            metalList: item.metalList || [],
+                            problems: []
+                        };
+                    }
+                    if (item.problems) {
+                        consolidatedItems[itemName].problems.push(...item.problems);
+                    }
+                });
             });
 
             let itemArray = Object.values(consolidatedItems);
@@ -613,7 +653,7 @@
             let accumulationStatus = isAccumulationOk ? "✅ OK (Tercapai)" : "❌ NG (Tidak Tercapai)";
 
             waText += `──────────────────────\n`;
-            waText += `📊 *AKUMULASI TOTAL SHIFT*\n`;
+            waText += `📊 *AKUMULASI TOTAL FILTER*\n`;
             waText += `• Total Material: *${totalShiftMaterial.toFixed(1)} Kg*\n`;
             waText += `• Total Rejection: *${totalShiftReject.toFixed(1)} Kg (${totalShiftPct.toFixed(2)}%)*\n`;
             waText += `• Standar Target KPI: *${machineInfo.desc}*\n`;
@@ -625,7 +665,6 @@
             let waUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
             window.open(waUrl, '_blank');
         }
-
         function startAutoRefresh() {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             autoRefreshInterval = setInterval(async () => {
