@@ -109,8 +109,9 @@
         .table-custom th { background: linear-gradient(135deg, #312e81 0%, #3730a3 100%) !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; }
         .table-img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #818cf8; margin-right: 3px; }
 
+        /* PRINT STYLES - BERSIH, MINIM WARNA, TERDAPAT KOLOM FOTO MASALAH & PERBAIKAN */
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; font-size: 10pt; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; font-size: 9pt; padding: 0 !important; }
             .navbar, .modal, .no-print, .btn, .glass-card > div:first-child, .row.g-3.mb-4.bg-light, .row.g-3.align-items-end { display: none !important; }
             .glass-card { border: none !important; box-shadow: none !important; background: #ffffff !important; padding: 0 !important; margin: 0 !important; }
             #section-history { display: block !important; width: 100% !important; }
@@ -118,28 +119,30 @@
             
             .print-header {
                 display: block !important;
-                border-bottom: 3px double #000000;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
+                border-bottom: 2px solid #000000;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
                 text-align: center;
             }
-            .print-header h3 { font-size: 16pt; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; color: #000 !important; }
-            .print-header h5 { font-size: 12pt; font-weight: 700; margin-bottom: 2px; color: #333 !important; }
-            .print-header p { font-size: 9pt; margin-bottom: 0; color: #555 !important; }
+            .print-header h3 { font-size: 14pt; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; color: #000 !important; }
+            .print-header h5 { font-size: 10pt; font-weight: 700; margin-bottom: 2px; color: #222 !important; }
+            .print-header p { font-size: 8pt; margin-bottom: 0; color: #444 !important; }
 
             .table-custom th {
-                background: #222222 !important;
-                color: #ffffff !important;
+                background: #f1f5f9 !important;
+                color: #000000 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                font-size: 9.5pt;
+                font-size: 8.5pt;
+                border: 1px solid #000 !important;
             }
             .table-custom td {
-                font-size: 9pt;
-                padding: 5px !important;
+                font-size: 8pt;
+                padding: 4px !important;
                 color: #000000 !important;
+                border: 1px solid #ccc !important;
             }
-            .table-img-thumb { width: 40px; height: 40px; border: 1px solid #000; }
+            .table-img-thumb { width: 35px; height: 35px; border: 1px solid #000; border-radius: 2px; }
         }
         .print-header { display: none; }
     </style>
@@ -389,7 +392,8 @@
                                     <th>Rejection (Kg & %)</th>
                                     <th>Analisa & Follow Up</th>
                                     <th>Tindakan Improvement</th>
-                                    <th>Foto Bukti</th>
+                                    <th>Foto Masalah</th>
+                                    <th>Foto Perbaikan</th>
                                 </tr>
                             </thead>
                             <tbody id="historyTableBodyDesktop"></tbody>
@@ -397,6 +401,11 @@
                     </div>
 
                     <div class="mobile-card-view no-print" id="historyCardBodyMobile"></div>
+
+                    <!-- FOOTER KHUSUS LAPORAN PDF -->
+                    <div class="d-none d-print-block mt-4 pt-3 border-top text-center" style="font-size: 7.5pt; color: #555;">
+                        <span>Laporan ini dikirim otomatis via sistem web extruder departemen</span>
+                    </div>
 
                 </div>
             </div>
@@ -476,6 +485,35 @@
             startAutoRefresh();
         });
 
+        // FUNGSI KOMPRESI FOTO OTOMATIS (MENGATASI NGELAG SAAT UPLOAD FILE BESAR)
+        function compressImage(file, maxWidth = 900, quality = 0.7) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                };
+            });
+        }
+
         function openPdfAuthModal() {
             document.getElementById('pdfUsername').value = '';
             document.getElementById('pdfPassword').value = '';
@@ -506,7 +544,6 @@
                 return;
             }
 
-            // AMBIL NILAI FILTER AKTIF DI DASHBOARD
             const startD = document.getElementById('filterStartDate').value;
             const endD = document.getElementById('filterEndDate').value;
             const shiftF = document.getElementById('filterShift').value;
@@ -514,7 +551,6 @@
             const itemF = document.getElementById('filterItem').value;
             const probF = document.getElementById('filterProblemDesc').value;
 
-            // FILTER DATA SESUAI DENGAN APA YANG SEDANG TAMPIL DI LAYAR DASHBOARD
             let filtered = history.filter(r => {
                 let match = true;
                 let rawDate = r.header.tanggal ? r.header.tanggal.split('T')[0] : '';
@@ -547,7 +583,6 @@
                 return;
             }
 
-            // AMBIL HEADER DARI DATA PERTAMA HASIL FILTER AKTIF
             let activeReport = filtered[0];
             let header = activeReport.header || {};
 
@@ -577,7 +612,6 @@
             let totalShiftReject = 0;
             let consolidatedItems = {};
             
-            // KONSOLIDASI ITEM HANYA DARI DATA YANG TERFILTER (MISALNYA LINE 3 SAJA)
             filtered.forEach(report => {
                 (report.items || []).forEach(item => {
                     let itemName = item.namaItem || 'Produk';
@@ -665,6 +699,7 @@
             let waUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
             window.open(waUrl, '_blank');
         }
+
         function startAutoRefresh() {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             autoRefreshInterval = setInterval(async () => {
@@ -1256,26 +1291,26 @@
             input.click();
         }
 
-        function handlePhotoUpload(input) {
+        // INTEGRASI KOMPRESI OTOMATIS SAAT FOTO DI-UPLOAD
+        async function handlePhotoUpload(input) {
             const file = input.files[0];
             if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Img = e.target.result;
-                const previewBox = input.parentElement;
-                previewBox.innerHTML = `<img src="${base64Img}"><button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-1" style="width:20px;height:20px;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="removePhotoBox(this, event)"><i class="fa-solid fa-xmark"></i></button>`;
-                previewBox.removeAttribute('onclick');
 
-                const parentContainer = previewBox.parentElement;
-                if(parentContainer.children.length < 3) {
-                    const newBox = document.createElement('div');
-                    newBox.className = "img-preview-box";
-                    newBox.setAttribute('onclick', 'triggerPhotoInput(this)');
-                    newBox.innerHTML = `<i class="fa-solid fa-camera text-secondary fs-4"></i><input type="file" accept="image/*" class="d-none" onchange="handlePhotoUpload(this)">`;
-                    parentContainer.appendChild(newBox);
-                }
-            };
-            reader.readAsDataURL(file);
+            // Kompres foto otomatis agar ukuran file besar (misal 9 MB) mengecil instan tanpa ngelag
+            const compressedBase64 = await compressImage(file, 900, 0.7);
+
+            const previewBox = input.parentElement;
+            previewBox.innerHTML = `<img src="${compressedBase64}"><button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-1" style="width:20px;height:20px;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="removePhotoBox(this, event)"><i class="fa-solid fa-xmark"></i></button>`;
+            previewBox.removeAttribute('onclick');
+
+            const parentContainer = previewBox.parentElement;
+            if(parentContainer.children.length < 3) {
+                const newBox = document.createElement('div');
+                newBox.className = "img-preview-box";
+                newBox.setAttribute('onclick', 'triggerPhotoInput(this)');
+                newBox.innerHTML = `<i class="fa-solid fa-camera text-secondary fs-4"></i><input type="file" accept="image/*" class="d-none" onchange="handlePhotoUpload(this)">`;
+                parentContainer.appendChild(newBox);
+            }
         }
 
         function removePhotoBox(btn, event) {
@@ -1552,7 +1587,7 @@
             let topProbMap = {};
 
             if(filtered.length === 0) {
-                desktopBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted fw-bold">Belum ada data laporan yang tersedia.</td></tr>`;
+                desktopBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted fw-bold">Belum ada data laporan yang tersedia.</td></tr>`;
                 mobileContainer.innerHTML = `<div class="text-center py-4 text-muted fw-bold">Belum ada data laporan.</div>`;
                 updateStatistics(0, 0, 0, factorCounts, topProbMap, "LINE 1");
                 return;
@@ -1584,7 +1619,6 @@
                         countedReportIds.add(uniqueMaterialKey);
                     }
 
-                    // TAMPILAN COMPOUND SPESIFIK YANG AKURAT
                     let compDetails = '-';
                     if (item.compoundList && item.compoundList.length > 0) {
                         compDetails = item.compoundList.map(c => `• ${c.name}: ${c.weight} Kg`).join('<br>');
@@ -1614,8 +1648,8 @@
                             topProbMap[prob.problemDesc].pct += pct;
                         }
 
-                        let pImgs = (prob.photoProblemList || prob.fotoProblemList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Prob';
-                        let iImgs = (prob.photoImprovementList || prob.fotoImprovementList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || 'No Imp';
+                        let pImgs = (prob.photoProblemList || prob.fotoProblemList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || '-';
+                        let iImgs = (prob.photoImprovementList || prob.fotoImprovementList || []).map(u => `<img src="${getDriveDirectEmbedUrl(u)}" class="table-img-thumb" onclick="openImageModal('${getDriveDirectEmbedUrl(u)}')">`).join('') || '-';
 
                         let row = `
                             <tr>
@@ -1637,7 +1671,8 @@
                                 <td><strong>${rejKg.toFixed(1)} Kg</strong><br><span class="text-danger fw-bold">(${pct.toFixed(2)}%)</span></td>
                                 <td><small><strong>Analisa:</strong><br>${(prob.analisaList || []).join('; ') || '-'}<br><strong>Follow Up:</strong><br>${(prob.followUpList || []).join('; ') || '-'}</small></td>
                                 <td><small>${(prob.tindakanList || []).join('; ') || '-'}</small></td>
-                                <td><div class="d-flex flex-wrap gap-1">${pImgs}</div><div class="d-flex flex-wrap gap-1 mt-1">${iImgs}</div></td>
+                                <td class="text-center"><div class="d-flex flex-wrap gap-1 justify-content-center">${pImgs}</div></td>
+                                <td class="text-center"><div class="d-flex flex-wrap gap-1 justify-content-center">${iImgs}</div></td>
                             </tr>
                         `;
                         desktopBody.insertAdjacentHTML('beforeend', row);
