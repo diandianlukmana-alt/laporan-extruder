@@ -740,32 +740,110 @@
             window.open(waUrl, '_blank');
         }
 
-        async function fetchMasterDataFromSheet() {
-            if(!GOOGLE_SCRIPT_URL) return;
-            try {
-                const response = await fetch(GOOGLE_SCRIPT_URL);
-                const result = await response.json();
-                if(result.status === "success") {
-                    dynamicMasterItems = result.items || [];
-                    dynamicMasterCompounds = result.compounds || [];
-                    dynamicMasterMetals = result.metals || [];
-                    dynamicCategories = result.categories || [];
-                    
-                    if(result.reports && result.reports.length > 0) {
-                        localStorage.setItem('extruder_reports_v7', JSON.stringify(result.reports));
-                        renderHistoryTable();
-                    }
+        // Mengambil snapshot terbaru dari server. GET ini juga dipakai untuk
+        // memastikan POST no-cors benar-benar sudah diproses oleh Apps Script.
+        async function getServerSnapshot() {
+            if (!GOOGLE_SCRIPT_URL) throw new Error("Alamat Google Apps Script belum diatur.");
 
-                    document.querySelectorAll('.item-block-card').forEach(block => {
-                        refreshItemDropdown(block);
-                        block.querySelectorAll('.problem-item-card').forEach(pCard => refreshCategoryDropdown(pCard));
-                        block.querySelectorAll('.sub-compound-row').forEach(cRow => refreshCompoundDropdown(cRow));
-                        block.querySelectorAll('.sub-metal-row').forEach(mRow => refreshMetalDropdown(mRow));
-                    });
-                    populateFilterDropdowns();
+            // JSONP digunakan karena website GitHub Pages dan Apps Script
+            // berada pada domain berbeda; fetch GET biasa dapat diblokir CORS.
+            return await new Promise((resolve, reject) => {
+                const callbackName = "__extruderJsonp_" + Date.now() + "_" +
+                    Math.floor(Math.random() * 1000000);
+                const script = document.createElement("script");
+                const separator = GOOGLE_SCRIPT_URL.includes("?") ? "&" : "?";
+                let finished = false;
+
+                const cleanup = () => {
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+                    clearTimeout(timeoutId);
+                };
+
+                const timeoutId = setTimeout(() => {
+                    if (finished) return;
+                    finished = true;
+                    cleanup();
+                    reject(new Error("Waktu tunggu respons Google Apps Script habis."));
+                }, 20000);
+
+                window[callbackName] = result => {
+                    if (finished) return;
+                    finished = true;
+                    cleanup();
+                    if (!result || result.status !== "success") {
+                        reject(new Error((result && result.message) || "Server mengembalikan status yang tidak berhasil."));
+                        return;
+                    }
+                    resolve(result);
+                };
+
+                script.onerror = () => {
+                    if (finished) return;
+                    finished = true;
+                    cleanup();
+                    reject(new Error("Tidak dapat membaca respons Google Apps Script. Periksa URL dan deployment."));
+                };
+
+                script.src = GOOGLE_SCRIPT_URL + separator +
+                    "callback=" + encodeURIComponent(callbackName) +
+                    "&_ts=" + Date.now();
+                document.head.appendChild(script);
+            });
+        }
+
+        // POST memakai text/plain agar tidak memicu preflight CORS.
+        // Respons POST no-cors tidak bisa dibaca, sehingga hasilnya diverifikasi
+        // melalui GET JSONP ke database setelah POST dikirim.
+        async function postToAppsScriptAndVerify(payload, verifySnapshot, description) {
+            if (!GOOGLE_SCRIPT_URL) throw new Error("Alamat Google Apps Script belum diatur.");
+
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain;charset=UTF-8" },
+                body: JSON.stringify(payload)
+            });
+
+            let lastError = null;
+            for (let attempt = 1; attempt <= 6; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 700 * attempt));
+                try {
+                    const snapshot = await getServerSnapshot();
+                    if (verifySnapshot(snapshot)) return snapshot;
+                } catch (err) {
+                    lastError = err;
                 }
-            } catch(err) {
+            }
+
+            const detail = lastError ? " Detail: " + lastError.message : "";
+            throw new Error((description || "Permintaan") + " sudah dikirim, tetapi belum dapat dikonfirmasi di Google Sheets. Jangan kirim ulang dulu; periksa dashboard atau database terlebih dahulu." + detail);
+        }
+
+        async function fetchMasterDataFromSheet() {
+            if (!GOOGLE_SCRIPT_URL) return false;
+            try {
+                const result = await getServerSnapshot();
+                dynamicMasterItems = result.items || [];
+                dynamicMasterCompounds = result.compounds || [];
+                dynamicMasterMetals = result.metals || [];
+                dynamicCategories = result.categories || [];
+
+                // Selalu sinkronkan cache, termasuk ketika server memang kosong.
+                localStorage.setItem('extruder_reports_v7', JSON.stringify(result.reports || []));
+                renderHistoryTable();
+
+                document.querySelectorAll('.item-block-card').forEach(block => {
+                    refreshItemDropdown(block);
+                    block.querySelectorAll('.problem-item-card').forEach(pCard => refreshCategoryDropdown(pCard));
+                    block.querySelectorAll('.sub-compound-row').forEach(cRow => refreshCompoundDropdown(cRow));
+                    block.querySelectorAll('.sub-metal-row').forEach(mRow => refreshMetalDropdown(mRow));
+                });
+                populateFilterDropdowns();
+                return true;
+            } catch (err) {
                 console.error("Gagal mengambil master data:", err);
+                return false;
             }
         }
 
@@ -1475,30 +1553,43 @@
                 isEdit: !!editId 
             };
 
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            if(editId) {
-                history = history.filter(r => (r.reportId || r.header.id) !== editId);
-            }
-            history.unshift(reportData);
-            localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
+            try {
+                const expectedProblemIds = [];
+                const expectedPhotoCounts = {};
+                (reportData.items || []).forEach(item => (item.problems || []).forEach(prob => {
+                    expectedProblemIds.push(prob.problemId);
+                    expectedPhotoCounts[prob.problemId] = {
+                        problem: (prob.photoProblemList || []).length,
+                        improvement: (prob.photoImprovementList || []).length
+                    };
+                }));
 
-            if(GOOGLE_SCRIPT_URL) {
-                try {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(reportData)
+                const snapshot = await postToAppsScriptAndVerify(reportData, result => {
+                    const savedReport = (result.reports || []).find(r => (r.reportId || (r.header && r.header.id)) === reportData.reportId);
+                    if (!savedReport) return false;
+                    const savedProblems = [];
+                    (savedReport.items || []).forEach(item => (item.problems || []).forEach(prob => savedProblems.push(prob)));
+                    return expectedProblemIds.every(problemId => {
+                        const saved = savedProblems.find(prob => prob.problemId === problemId);
+                        if (!saved) return false;
+                        const expected = expectedPhotoCounts[problemId] || { problem: 0, improvement: 0 };
+                        return (saved.photoProblemList || saved.fotoProblemList || []).length === expected.problem &&
+                               (saved.photoImprovementList || saved.fotoImprovementList || []).length === expected.improvement;
                     });
-                } catch(e) { console.error("Kirim ke Sheets error:", e); }
-            }
+                }, "Penyimpanan laporan");
 
-            alert("✅ Laporan Berhasil Disimpan!");
-            resetFormToNew();
-            switchTab('history');
-            renderHistoryTable();
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets`;
+                localStorage.setItem('extruder_reports_v7', JSON.stringify(snapshot.reports || []));
+                alert("✅ Laporan dan foto sudah terkonfirmasi tersimpan di Google Sheets/Drive.");
+                resetFormToNew();
+                switchTab('history');
+                renderHistoryTable();
+            } catch (err) {
+                console.error("Kirim laporan gagal atau belum terkonfirmasi:", err);
+                alert("❌ " + err.message + "\n\nForm tetap dibuka agar data yang Anda isi tidak hilang.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> Kirim Laporan ke Google Sheets`;
+            }
         }
 
         function resetFormToNew() {
@@ -1835,59 +1926,35 @@
                 return;
             }
 
-            let history = JSON.parse(localStorage.getItem('extruder_reports_v7') || '[]');
-            
-            if(deleteTargetAction === "single_row") {
-                history.forEach(r => {
-                    if((r.reportId || r.header.id) === targetReportIdToDelete) {
-                        (r.items || []).forEach(i => {
-                            i.problems = (i.problems || []).filter(p => p.problemId !== targetProblemIdToDelete);
-                        });
-                    }
-                });
-
-                history.forEach(r => {
-                    r.items = (r.items || []).filter(i => i.problems && i.problems.length > 0);
-                });
-                history = history.filter(r => r.items && r.items.length > 0);
-
-                localStorage.setItem('extruder_reports_v7', JSON.stringify(history));
-
-                if(GOOGLE_SCRIPT_URL) {
-                    try {
-                        await fetch(GOOGLE_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: "delete_report",
-                                reportId: targetReportIdToDelete,
-                                problemId: targetProblemIdToDelete
-                            })
-                        });
-                    } catch(e) { console.error("Error delete ke Sheets:", e); }
+            try {
+                let snapshot;
+                if(deleteTargetAction === "single_row") {
+                    snapshot = await postToAppsScriptAndVerify({
+                        action: "delete_report",
+                        reportId: targetReportIdToDelete,
+                        problemId: targetProblemIdToDelete
+                    }, result => {
+                        return !(result.reports || []).some(report =>
+                            (report.items || []).some(item =>
+                                (item.problems || []).some(prob => prob.problemId === targetProblemIdToDelete)
+                            )
+                        );
+                    }, "Penghapusan baris rejection");
+                    alert("Baris rejection berhasil dihapus dan terkonfirmasi di database.");
+                } else if(deleteTargetAction === "all") {
+                    snapshot = await postToAppsScriptAndVerify({ action: "clear_sheet" }, result =>
+                        (result.reports || []).length === 0,
+                        "Pengosongan riwayat laporan");
+                    alert("Semua riwayat laporan berhasil dikosongkan dan terkonfirmasi di database.");
                 }
 
-                alert("Baris rejection berhasil dihapus!");
-            } else if(deleteTargetAction === "all") {
-                localStorage.removeItem('extruder_reports_v7');
-
-                if(GOOGLE_SCRIPT_URL) {
-                    try {
-                        await fetch(GOOGLE_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: "clear_sheet" })
-                        });
-                    } catch(e) { console.error("Error clear sheet:", e); }
-                }
-
-                alert("Semua riwayat laporan berhasil dikosongkan!");
+                if (snapshot) localStorage.setItem('extruder_reports_v7', JSON.stringify(snapshot.reports || []));
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                renderHistoryTable();
+            } catch (err) {
+                console.error("Aksi penghapusan gagal atau belum terkonfirmasi:", err);
+                alert("❌ " + err.message + "\n\nRiwayat lokal tidak diubah.");
             }
-
-            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-            renderHistoryTable();
         }
 
         function togglePasswordVisibility() {
