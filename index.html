@@ -1318,9 +1318,10 @@
     const file = input.files[0];
     if (!file) return;
 
-    // Validasi format gambar standar agar stabil
-    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        alert("Mohon gunakan foto berformat JPG, JPEG, atau PNG.");
+    // Validasi format gambar standar agar stabil & aman untuk Google Sheets
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type.toLowerCase()) && !file.name.toLowerCase().match(/\.(jpg|jpeg|png)$/)) {
+        alert("Format file tidak didukung! Harap unggah foto berformat JPG, JPEG, atau PNG.");
         input.value = "";
         return;
     }
@@ -1337,7 +1338,7 @@
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-            const maxWidth = 800; // Ukuran lebar optimal agar ringan dikirim
+            const maxWidth = 600; // Batasi lebar maksimal agar ukuran string Base64 ringan dan muat di sel Google Sheets
 
             if (width > maxWidth) {
                 height = Math.round((height * maxWidth) / width);
@@ -1349,8 +1350,8 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Kompresi otomatis ke JPEG kualitas 0.65 (sangat ringan & lolos server Google)
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+            // Kompresi otomatis ke JPEG kualitas 0.6 (menghasilkan string ~20-30 KB yang sangat aman untuk Google Sheets)
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
 
             previewBox.style.opacity = "1";
             previewBox.innerHTML = `<img src="${compressedBase64}"><button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-1" style="width:20px;height:20px;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="removePhotoBox(this, event)"><i class="fa-solid fa-xmark"></i></button>`;
