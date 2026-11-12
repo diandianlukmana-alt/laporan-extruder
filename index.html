@@ -452,7 +452,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKCJM-m_B9TuWuh5zwdgjfucvftvzalYRLC6VC-qSjxn8Hjmq8RVfkf_cGa3V99M-peg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRmS9tERmGLaxe1542tzJPMDEDf0TGO8SxfszeWWGshM7kZtAtoqUkZaTc3zKXk6umKw/exec"; 
         
         const DELETE_PASSWORD = "hapus1234";
         const PDF_USER = "extruderhebat";
@@ -1315,27 +1315,30 @@
         }
 
         async function handlePhotoUpload(input) {
-            const file = input.files[0];
-            if(!file) return;
+    const file = input.files[0];
+    if(!file) return;
 
-            const previewBox = input.parentElement;
-            previewBox.style.opacity = "0.5";
+    const previewBox = input.parentElement;
+    previewBox.style.opacity = "0.5";
 
-            const compressedBase64 = await compressImage(file, 700, 0.6);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64String = e.target.result;
+        previewBox.style.opacity = "1";
+        previewBox.innerHTML = `<img src="${base64String}"><button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-1" style="width:20px;height:20px;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="removePhotoBox(this, event)"><i class="fa-solid fa-xmark"></i></button>`;
+        previewBox.removeAttribute('onclick');
 
-            previewBox.style.opacity = "1";
-            previewBox.innerHTML = `<img src="${compressedBase64}"><button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-1" style="width:20px;height:20px;font-size:10px;display:flex;align-items:center;justify-content:center;" onclick="removePhotoBox(this, event)"><i class="fa-solid fa-xmark"></i></button>`;
-            previewBox.removeAttribute('onclick');
-
-            const parentContainer = previewBox.parentElement;
-            if(parentContainer.children.length < 3) {
-                const newBox = document.createElement('div');
-                newBox.className = "img-preview-box";
-                newBox.setAttribute('onclick', 'triggerPhotoInput(this)');
-                newBox.innerHTML = `<i class="fa-solid fa-camera text-secondary fs-4"></i><input type="file" accept="image/*,.heic,.heif,.webp,.bmp,.tiff" class="d-none" onchange="handlePhotoUpload(this)">`;
-                parentContainer.appendChild(newBox);
-            }
+        const parentContainer = previewBox.parentElement;
+        if(parentContainer.children.length < 3) {
+            const newBox = document.createElement('div');
+            newBox.className = "img-preview-box";
+            newBox.setAttribute('onclick', 'triggerPhotoInput(this)');
+            newBox.innerHTML = `<i class="fa-solid fa-camera text-secondary fs-4"></i><input type="file" accept="image/*,.heic,.heif,.webp,.bmp,.tiff" class="d-none" onchange="handlePhotoUpload(this)">`;
+            parentContainer.appendChild(newBox);
         }
+    };
+    reader.readAsDataURL(file);
+}
 
         function removePhotoBox(btn, event) {
             event.stopPropagation();
